@@ -280,8 +280,37 @@ porq já tem o [ApiController] configurado na controller.
 
 - Apenas lembra de tipar acima do método, oque foi implementado.
 
-- 
+### Convenção de API
 
+ - Dessa forma fica mais simplificado
+
+ - Ele gera os dois tipos de produce.
+
+ <blockquete>
+
+   // POST api/values/
+   [HttpPost]
+   [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+   public ActionResult Post3(Product product)
+   {
+      if (product.Id == 0)
+      {
+            return BadRequest();
+      }
+
+      // add no banco
+
+      // retorna um ok, mas seria um 200
+      //return Ok(product);
+
+      // retorna um 201
+      return CreatedAtAction(actionName: "Post2", product);
+
+      // retorna um 201
+      // return CreatedAtAction(actionName: nameof(Post2), product);
+   }
+
+ </blockquete>
 
 -
 

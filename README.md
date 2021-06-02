@@ -312,19 +312,117 @@ porq já tem o [ApiController] configurado na controller.
 
  </blockquete>
 
--
+# Processo rápido - CRUD
 
-
-
--
-
-
--
-
+- Instala os pacotes
 
  <blockquete>
 
+   Microsoft.EntityFrameworkCore Microsoft.EntityFrameworkCore.SqlServer
+
  </blockquete>
+
+ <blockquete>
+
+   Microsoft.EntityFrameworkCore.SqlServer.Design
+
+ </blockquete>
+
+ <blockquete>
+
+   Microsoft.EntityFrameworkCore.Tools
+
+ </blockquete>
+
+- Cria o Model
+
+<blockquete>
+
+  public class FornecedorViewModel
+  {
+      [Key]
+      public Guid Id { get; set; }
+
+
+      [Required(ErrorMessage = "O campo {0} é obrigatório")]
+      [StringLength(100, ErrorMessage = "O campo {0} precisa ter entre {2} e {1} caracteres", MinimumLength = 2)]
+      public string Nome { get; set; }
+
+      [Required(ErrorMessage = "O campo {0} é obrigatório")]
+      [StringLength(14, ErrorMessage = "O campo {0} precisa ter entre {2} e {1} caracteres", MinimumLength = 11)]
+      public string Documento { get; set; }
+
+      public int TipoFornecedor { get; set; }
+
+      public bool Ativo { get; set; }
+  }
+
+</blockquete>
+
+- Cria uma classe chamada  "ApiDbContext" e herda o DbContext
+
+ <blockquete>
+
+  public class ApiDbContext : DbContext
+  {
+      public ApiDbContext(DbContextOptions options) : base(options)
+      {}
+  }
+
+   public DbSet<Fornecedor> Fornecedores { get; set; }
+
+ </blockquete>
+
+- Na startUp configura o entityframework
+
+<blockquete>
+
+  services.AddDbContext<ApiDbContext>(optionsAction:options =>
+   options.UseSqlServer(Configuration.GetConnectionString(name: "DefaultConnection")));
+
+</blockquete>
+
+- Executa o comando da migration
+ 
+ <blockquete>
+
+   dotnet ef migrations add "nomeDpMigration"
+
+ </blockquete>
+ 
+- Depois o comando que atualiza.
+
+ <blockquete>
+
+   dotnet ef database update
+
+ </blockquete>
+ 
+- Cria a controller usando entityframework
+
+- Escolha a modelo(fornecedor), e o contexto existente.
+
+
+
+ 
+ <blockquete>
+
+ </blockquete>
+
+ 
+-
+
+
+
+ 
+ <blockquete>
+
+ </blockquete>
+
+ 
+-
+
+
 
  
  <blockquete>

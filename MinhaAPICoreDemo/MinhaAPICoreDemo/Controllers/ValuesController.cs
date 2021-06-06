@@ -56,10 +56,10 @@ namespace MinhaAPICoreDemo.Controllers
 
         // POST api/values/
         [HttpPost]
-        [ProducesResponseType(typeof(Product), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(Product2), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult Post2(Product product)
+        public ActionResult Post2(Product2 product)
         {
             if(product.Id == 0 )
             {
@@ -82,7 +82,7 @@ namespace MinhaAPICoreDemo.Controllers
         // POST api/values/
         [HttpPost]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-        public ActionResult Post3(Product product)
+        public ActionResult Post3(Product2 product)
         {
             if (product.Id == 0)
             {
@@ -111,7 +111,7 @@ namespace MinhaAPICoreDemo.Controllers
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Put))]
         // PUT api/values/5
         [HttpPut("{id}")]
-        public ActionResult Put2([FromRoute] int id, [FromBody] Product product)
+        public ActionResult Put2([FromRoute] int id, [FromBody] Product2 product)
         {
             if (ModelState.IsValid) return BadRequest();
 
@@ -133,7 +133,7 @@ namespace MinhaAPICoreDemo.Controllers
 
 
     // Classe model para teste
-    public class Product 
+    public class Product2
     {
         public int Id { get; set; }
         public string nome { get; set; }

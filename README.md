@@ -402,7 +402,11 @@ porq já tem o [ApiController] configurado na controller.
 
 - Escolha a modelo(fornecedor), e o contexto existente.
 
+- dotnet por padrão retorna tudo async
 
+# Setup - API Completa
+
+- 
 
  
  <blockquete>

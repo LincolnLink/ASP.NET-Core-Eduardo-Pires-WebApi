@@ -1,21 +1,19 @@
+using AutoMapper;
+using DevIO.Data.Context;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MinhaAPICoreDemo.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.EntityFrameworkCore;
 
-namespace MinhaAPICoreDemo
+namespace DevIO.Api
 {
     public class Startup
     {
@@ -29,23 +27,12 @@ namespace MinhaAPICoreDemo
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ApiDbContext>(optionsAction:options =>
-                options.UseSqlServer(Configuration.GetConnectionString(name: "DefaultConnection")));
-
-            services.AddDbContext<ProductsContext>(optionsAction: options =>
-                options.UseSqlServer(Configuration.GetConnectionString(name: "DefaultConnection")));
-
-            services.AddCors(options =>
+            services.AddDbContext<MeuDbContext>(options =>
             {
-                options.AddPolicy("Development", 
-                    builder =>
-                    {
-                        builder
-                        .AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader();
-                    });
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
             });
+
+            services.AddAutoMapper(typeof(Startup));
 
             services.AddControllers();
         }
@@ -55,17 +42,8 @@ namespace MinhaAPICoreDemo
         {
             if (env.IsDevelopment())
             {
-                app.UseCors("Development");
                 app.UseDeveloperExceptionPage();
-                
             }
-            else
-            {
-                app.UseCors("Development");
-            }
-
-
-            app.UseHttpsRedirection();
 
             app.UseRouting();
 

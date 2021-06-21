@@ -1,23 +1,27 @@
 ﻿using System;
 using System.Linq;
-using DevIO.Business.Intefaces;
 using DevIO.Business.Notificacoes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace DevIO.Api.Controllers
 {
+
+    /// <summary>
+    /// Classe Base das controllers, Class abstrata so pode ser herdada.
+    /// Validação de notificação de erro, ModelState e Operações de Negocios.
+    /// </summary>
     [ApiController]
     public abstract class MainController : ControllerBase
     {
+        /*
         private readonly INotificador _notificador;
         public readonly IUser AppUser;
 
         protected Guid UsuarioId { get; set; }
         protected bool UsuarioAutenticado { get; set; }
 
-        protected MainController(INotificador notificador, 
-                                 IUser appUser)
+        protected MainController(INotificador notificador, IUser appUser)
         {
             _notificador = notificador;
             AppUser = appUser;
@@ -71,6 +75,6 @@ namespace DevIO.Api.Controllers
         protected void NotificarErro(string mensagem)
         {
             _notificador.Handle(new Notificacao(mensagem));
-        }
+        }*/
     }
 }

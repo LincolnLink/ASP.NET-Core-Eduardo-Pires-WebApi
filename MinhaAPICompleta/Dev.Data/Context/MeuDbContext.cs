@@ -1,11 +1,11 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using DevIO.Business.Models;
+﻿using DevIO.Business.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-namespace DevIO.Data.Context
+namespace Dev.Data.Context
 {
     public class MeuDbContext : DbContext
     {

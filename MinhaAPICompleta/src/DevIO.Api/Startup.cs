@@ -1,4 +1,5 @@
 using AutoMapper;
+using DevIO.Api.Configuration;
 using DevIO.Data.Context;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -33,6 +34,8 @@ namespace DevIO.Api
             });
 
             services.AddAutoMapper(typeof(Startup));
+
+            services.ResolveDependencies();
 
             services.AddControllers();
         }

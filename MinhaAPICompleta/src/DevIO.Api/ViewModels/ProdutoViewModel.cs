@@ -20,8 +20,14 @@ namespace DevIO.Api.ViewModels
         [StringLength(1000, ErrorMessage = "O campo {0} precisa ter entre {2} e {1} caracteres", MinimumLength = 2)]
         public string Descricao { get; set; }
 
+        /// <summary>
+        /// Nome do arquivo de imagem.
+        /// </summary>
         public string ImagemUpload { get; set; }
 
+        /// <summary>
+        /// Nome da imagem que está no banco
+        /// </summary>
         public string Imagem { get; set; }
 
         [Required(ErrorMessage = "O campo {0} é obrigatório")]

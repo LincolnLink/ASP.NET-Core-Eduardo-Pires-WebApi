@@ -406,17 +406,212 @@ porq já tem o [ApiController] configurado na controller.
 
 # Setup - API Completa
 
-- 
+- Cria o projeto de Web API, e copia e cola os projetos de Dados, e Business quefoi feita no curso de MVC.
+
+# Visão do fluxo da arquitetura
+
+ - Explicando o projeto.
+
+# Implementando DTOs (ViewModels)
+
+ - Cria uma pasta chamada ViewModel ou DTO.
+
+ - Essas model já tem ps meta dados e validações.
+
+ - As viewModel são: FornecedorViewModel, ProdutoImagemViewModel, EnderecoViewModel.
+
+ - É importante criar um viewModel porq nela não tem as propriedades de relacionamentos entre as entidades, isso causa bug no Jsom.
+
+ - ScaffoldColumn: não é ultilizado como dado de entrada, serve mais para o Razon.
+  
+ <blockquete>
+
+      public class FornecedorViewModel
+      {
+         [Key]
+         public Guid Id { get; set; }
+
+         [Required(ErrorMessage = "O campo {0} é obrigatório")]
+         [StringLength(100, ErrorMessage = "O campo {0} precisa ter entre {2} e {1} caracteres", MinimumLength = 2)]
+         public string Nome { get; set; }
+
+         [Required(ErrorMessage = "O campo {0} é obrigatório")]
+         [StringLength(14, ErrorMessage = "O campo {0} precisa ter entre {2} e {1} caracteres", MinimumLength = 11)]
+         public string Documento { get; set; }
+
+         public int TipoFornecedor { get; set; }
+
+         public EnderecoViewModel Endereco { get; set; }
+
+         public bool Ativo { get; set; }
+
+         public IEnumerable<ProdutoViewModel> Produtos { get; set; }
+      }
+
+ </blockquete>
+ 
+- ViewModel de Produto.
+
+ <blockquete>
+
+      public class ProdutoViewModel
+      {
+         [Key]
+         public Guid Id { get; set; }
+
+         [Required(ErrorMessage = "O campo {0} é obrigatório")]
+
+         public Guid FornecedorId { get; set; }
+
+         [Required(ErrorMessage = "O campo {0} é obrigatório")]
+         [StringLength(200, ErrorMessage = "O campo {0} precisa ter entre {2} e {1} caracteres", MinimumLength = 2)]
+         public string Nome { get; set; }
+
+         [Required(ErrorMessage = "O campo {0} é obrigatório")]
+         [StringLength(1000, ErrorMessage = "O campo {0} precisa ter entre {2} e {1} caracteres", MinimumLength = 2)]
+         public string Descricao { get; set; }
+
+         public string ImagemUpload { get; set; }
+
+         public string Imagem { get; set; }
+
+         [Required(ErrorMessage = "O campo {0} é obrigatório")]
+         public decimal Valor { get; set; }
+
+         [ScaffoldColumn(false)]
+         public DateTime DataCadastro { get; set; }
+
+         public bool Ativo { get; set; }
+
+         [ScaffoldColumn(false)]
+         public string NomeFornecedor { get; set; }
+      }
+ 
+ </blockquete>
+
+# Setup - Controllers e Startup
+
+ - Renomeia a controler que ja vem para "mainController"
+
+ - Criando uma Classe Base das controllers, Class abstrata so pode ser herdada.
+
+ - Validação de notificação de erro, ModelState e Operações de Negocios.
+
+ - Cria o "FornecedoresController", o primeiro método vai ser o getAll
+
+ - Injeta no construtor o repositorio de fornecedores.
+
+ - Não esquecendo de por o await, para esperar o resultado do EF.
+
+### AutoMapper
+
+ - Usa o automaper para poder converter a entidade para viewModel.
+   
+<blockquete>
+
+        Install-Package AutoMapper.Extensions.Microsoft.DependencyInjection
+
+</blockquete>
+
+ - Configura na startUp
+
+<blockquete>
+
+    services.AddAutoMapper(typeof(Startup));
+
+</blockquete>
+
+ - Cria uma pasta chamado "Configuration" e um arquivo chamado "AutomapperConfig".
+
+ - Nesse arquivo é configurado o vinculo das viewModel com as Models.
+  
+<blockquete>
+
+        public class AutomapperConfig : Profile
+        {
+            public AutomapperConfig()
+            {
+                CreateMap<Fornecedor, FornecedorViewModel>().ReverseMap();
+                CreateMap<Endereco, EnderecoViewModel>().ReverseMap();
+                CreateMap<ProdutoViewModel, Produto>();
+
+                CreateMap<ProdutoImagemViewModel, Produto>().ReverseMap();
+
+                CreateMap<Produto, ProdutoViewModel>()
+                    .ForMember(dest => dest.NomeFornecedor, opt => opt.MapFrom(src => src.Fornecedor.Nome));
+            }
+        }
+
+</blockquete>
+
+ - Injeta o autoMapper no metodo construtor do colerller de fornecedor.
+
+ - Converte a model para viewModel
+
+ - Na pasta Configuration, cria o arquivo "DependencyInjectionConfig".
+ 
+ - Nesse arquivo fica configurado as Injeções de Dependencia.
+
+ <blockquete>
+
+            public static IServiceCollection ResolveDependencies(this IServiceCollection services)
+            {
+                services.AddScoped<MeuDbContext>();
+                services.AddScoped<IProdutoRepository, ProdutoRepository>();
+            }
+
+ </blockquete>
+
+ - Chama a configuração na StratUp.
+ 
+ <blockquete>
+
+            services.ResolveDependencies();
+
+ </blockquete>
+
+ - Configura o banco na startUp.
+ 
+ <blockquete>
+
+            services.AddDbContext<MeuDbContext>(options =>
+            {
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+            });
+
+ </blockquete>
+
+ - Configuração do arquivo appSettings.json
+ 
+ <blockquete>
+
+          "ConnectionStrings": {
+            "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=MinhaAPICoreCompleta;Trusted_Connection=True;MultipleActiveResultSets=true"
+          }
+
+ </blockquete>
+
+ - executa o comando
+  
+ <blockquete>
+
+            update-database -verbose
+ 
+ </blockquete>
+
+# Modelando a controller de Fornecedores
+
+ - 
+ -
+ -
+ -
+
+ 
 
  
  <blockquete>
 
  </blockquete>
-
- 
--
-
-
 
  
  <blockquete>

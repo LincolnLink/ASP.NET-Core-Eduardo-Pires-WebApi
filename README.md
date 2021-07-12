@@ -552,7 +552,7 @@ porq já tem o [ApiController] configurado na controller.
  
  - Nesse arquivo fica configurado as Injeções de Dependencia.
 
- <blockquete>
+<blockquete>
 
             public static IServiceCollection ResolveDependencies(this IServiceCollection services)
             {
@@ -560,46 +560,143 @@ porq já tem o [ApiController] configurado na controller.
                 services.AddScoped<IProdutoRepository, ProdutoRepository>();
             }
 
- </blockquete>
+</blockquete>
 
  - Chama a configuração na StratUp.
  
- <blockquete>
+<blockquete>
 
             services.ResolveDependencies();
 
- </blockquete>
+</blockquete>
 
  - Configura o banco na startUp.
  
- <blockquete>
+<blockquete>
 
             services.AddDbContext<MeuDbContext>(options =>
             {
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
             });
 
- </blockquete>
+</blockquete>
 
  - Configuração do arquivo appSettings.json
  
- <blockquete>
+<blockquete>
 
           "ConnectionStrings": {
             "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=MinhaAPICoreCompleta;Trusted_Connection=True;MultipleActiveResultSets=true"
           }
 
- </blockquete>
+</blockquete>
 
  - executa o comando
   
- <blockquete>
+<blockquete>
+
+            Add-Migration Initial -Verbose -Context MeuDbContext
 
             update-database -verbose
  
- </blockquete>
+</blockquete>
 
 # Modelando a controller de Fornecedores
+
+### cria as outras actions, por exemplo o método obterPorId().
+- Cria um método isolado que busca por id, para que seja reaproveitado.
+
+ <blockquete>
+
+            [HttpGet("{id:guid}")]
+            public async Task<ActionResult<FornecedorViewModel>> ObterPorId(Guid id)
+            {
+                // Converte o o model fornecedor para fornecedorViewModel.
+                var fornecedor = await ObterFornecedorProdutosEndereco(id);
+
+                if (fornecedor == null) return NotFound(); //404 não encontrado.
+
+                return Ok(fornecedor); //200 Ok
+            }
+
+            public async Task<FornecedorViewModel> ObterFornecedorProdutosEndereco(Guid id)
+            {
+                return _mapper.Map<FornecedorViewModel>(await _fornecedorRepository.ObterFornecedorProdutosEndereco(id));
+            }
+
+ </blockquete>
+
+### verbo post
+
+- No "FornecedorService" bota a Task como Task<bool>, para retornar algo e não void, 
+com isso fica melhor te tratar o retorno, deve por da implementação da interface, retornando algum valor bool,
+em todas as saidas.
+
+- Bota o verbo "HttpPost" 
+
+<blockquete>
+
+            [HttpPost]
+            public async Task<ActionResult<FornecedorViewModel>> Adicionar(FornecedorViewModel fornecedorViewModel)
+            {
+                if (ModelState.IsValid) return BadRequest();
+
+                var fornecedor = _mapper.Map<Fornecedor>(fornecedorViewModel);
+                var result = await _fornecedorService.Adicionar(fornecedor);
+
+                if (!result) return BadRequest();
+
+                return Ok();
+            }
+
+</blockquete>
+
+### verbo put
+
+- Bota o nome do metodo para Atualizar e bota o verbo put, recebendo um guid.
+- O método recebe um guid e um fornecedorViewModel, com isso você compara se o guid é igual ao id do objeto,
+faz isso antes mesmo da validar a modelstate.
+- O task retorna bool, todas as saidas deve retornar um resultado bool.
+
+<blockquete>
+
+            [HttpPut("{id:guid}")]
+            public async Task<ActionResult<FornecedorViewModel>> Atualizar(Guid id, FornecedorViewModel fornecedorViewModel)
+            {
+                if (id != fornecedorViewModel.Id) return BadRequest();
+
+                if (ModelState.IsValid) return BadRequest();
+
+                var fornecedor = _mapper.Map<Fornecedor>(fornecedorViewModel);
+                var result = await _fornecedorService.Atualizar(fornecedor);
+
+                if (!result) return BadRequest();
+
+                return Ok(fornecedor);
+            }
+
+</blockquete>
+
+- remover
+
+<blockquete>
+
+            [HttpDelete("{id:guid}")]
+            public async Task<ActionResult<FornecedorViewModel>> Excluir(Guid id)
+            {
+                var fornecedor = await ObterFornecedorEndereco(id);
+
+                if (fornecedor == null) return NotFound();
+
+                await _fornecedorService.Remover(id);
+
+            }
+
+</blockquete>
+
+# Testando o resultado com Postman
+
+
 
  - 
  -

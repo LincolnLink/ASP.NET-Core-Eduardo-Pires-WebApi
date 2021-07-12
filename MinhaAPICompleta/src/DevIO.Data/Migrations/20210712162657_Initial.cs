@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DevIO.Data.Migrations
 {
-    public partial class initial : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -11,11 +11,11 @@ namespace DevIO.Data.Migrations
                 name: "Fornecedores",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(nullable: false),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Nome = table.Column<string>(type: "varchar(200)", nullable: false),
                     Documento = table.Column<string>(type: "varchar(14)", nullable: false),
-                    TipoFornecedor = table.Column<int>(nullable: false),
-                    Ativo = table.Column<bool>(nullable: false)
+                    TipoFornecedor = table.Column<int>(type: "int", nullable: false),
+                    Ativo = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -26,8 +26,8 @@ namespace DevIO.Data.Migrations
                 name: "Enderecos",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(nullable: false),
-                    FornecedorId = table.Column<Guid>(nullable: false),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    FornecedorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Logradouro = table.Column<string>(type: "varchar(200)", nullable: false),
                     Numero = table.Column<string>(type: "varchar(50)", nullable: false),
                     Complemento = table.Column<string>(type: "varchar(250)", nullable: true),
@@ -51,14 +51,14 @@ namespace DevIO.Data.Migrations
                 name: "Produtos",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(nullable: false),
-                    FornecedorId = table.Column<Guid>(nullable: false),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    FornecedorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Nome = table.Column<string>(type: "varchar(200)", nullable: false),
                     Descricao = table.Column<string>(type: "varchar(1000)", nullable: false),
                     Imagem = table.Column<string>(type: "varchar(100)", nullable: false),
-                    Valor = table.Column<decimal>(nullable: false),
-                    DataCadastro = table.Column<DateTime>(nullable: false),
-                    Ativo = table.Column<bool>(nullable: false)
+                    Valor = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    DataCadastro = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Ativo = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {

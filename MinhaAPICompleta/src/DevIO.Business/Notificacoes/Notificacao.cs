@@ -1,4 +1,5 @@
-﻿namespace DevIO.Business.Notificacoes
+﻿
+namespace DevIO.Business.Notificacoes
 {
     public class Notificacao
     {
@@ -6,7 +7,6 @@
         {
             Mensagem = mensagem;
         }
-
         public string Mensagem { get; }
     }
 }

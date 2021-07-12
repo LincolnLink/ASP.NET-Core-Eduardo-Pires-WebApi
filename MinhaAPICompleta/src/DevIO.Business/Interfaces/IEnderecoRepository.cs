@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Threading.Tasks;
 using DevIO.Business.Models;
+using System.Threading.Tasks;
 
-namespace DevIO.Business.Intefaces
+namespace DevIO.Business.Interfaces
 {
     public interface IEnderecoRepository : IRepository<Endereco>
     {

@@ -1,4 +1,4 @@
-﻿using DevIO.Business.Intefaces;
+﻿using DevIO.Business.Interfaces;
 using DevIO.Business.Models;
 using DevIO.Business.Notificacoes;
 using FluentValidation;
@@ -15,6 +15,7 @@ namespace DevIO.Business.Services
             _notificador = notificador;
         }
 
+        // Recebe uma coleção de resultado de erros
         protected void Notificar(ValidationResult validationResult)
         {
             foreach (var error in validationResult.Errors)
@@ -23,16 +24,18 @@ namespace DevIO.Business.Services
             }
         }
 
+        // Propagar esse erro até a camada de apresentação
         protected void Notificar(string mensagem)
         {
             _notificador.Handle(new Notificacao(mensagem));
         }
 
+
         protected bool ExecutarValidacao<TV, TE>(TV validacao, TE entidade) where TV : AbstractValidator<TE> where TE : Entity
         {
             var validator = validacao.Validate(entidade);
 
-            if(validator.IsValid) return true;
+            if (validator.IsValid) return true;
 
             Notificar(validator);
 

@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace DevIO.Business.Models.Validations.Documentos
 {
     public class CpfValidacao
     {
-
         public const int TamanhoCpf = 11;
 
         public static bool Validar(string cpf)
         {
+            //Método que remove tudo que não for numero.
             var cpfNumeros = Utils.ApenasNumeros(cpf);
 
             if (!TamanhoValido(cpfNumeros)) return false;
@@ -165,6 +166,7 @@ namespace DevIO.Business.Models.Validations.Documentos
 
     public class Utils
     {
+        //Método que remove tudo que não for numero.
         public static string ApenasNumeros(string valor)
         {
             var onlyNumber = "";
@@ -179,4 +181,3 @@ namespace DevIO.Business.Models.Validations.Documentos
         }
     }
 }
-

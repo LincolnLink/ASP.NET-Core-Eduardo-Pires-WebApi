@@ -4,16 +4,31 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using DevIO.Business.Models;
 
-namespace DevIO.Business.Intefaces
+
+namespace DevIO.Business.Interfaces
 {
-    public interface IRepository<TEntity> : IDisposable where TEntity : Entity
+    public interface IRepository<T> : IDisposable where T : Entity
     {
-        Task Adicionar(TEntity entity);
-        Task<TEntity> ObterPorId(Guid id);
-        Task<List<TEntity>> ObterTodos();
-        Task Atualizar(TEntity entity);
+        Task Adicionar(T entity);
+
+        Task<T> ObterPorId(Guid id);
+
+        Task<List<T>> ObterTodos();
+
+        Task Atualizar(T Obj);
+
         Task Remover(Guid id);
-        Task<IEnumerable<TEntity>> Buscar(Expression<Func<TEntity, bool>> predicate);
+
+        /// <summary>
+        /// Expression: siginifica uma expressão LAMBDA, que trabalha com uma função,
+        /// que compara a minha entidade com alguma coisa(predicate) des que ela retorna um bool.
+        /// </summary>      
+        Task<IEnumerable<T>> Buscar(Expression<Func<T, bool>> predicate);
+
+        /// <summary>
+        /// int é o numero de linhas afetadas.
+        /// </summary>       
         Task<int> SaveChanges();
+
     }
 }

@@ -1,5 +1,4 @@
-﻿
-namespace DevIO.Business.Models
+﻿namespace DevIO.Business.Models
 {
     public enum TipoFornecedor
     {

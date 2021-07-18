@@ -695,61 +695,177 @@ faz isso antes mesmo da validar a modelstate.
 </blockquete>
 
 # Testando o resultado com Postman
+ - Foi testado e está funcionando, só precisa tratar as notificações.
+
+# Padronizando erros de validação e de negócios (notificações).
+ - Desativando a validação do modelState, para poder usar uma validação personalizada.
+  
+<blockquete>
+
+             services.Configure<ApiBehaviorOptions>(options =>
+             {
+                options.SuppressModelStateInvalidFilter = true;
+             });
+             
+</blockquete>
+ 
+ - Cria uma sequencia de métodos da classe "MainController", esses métodos vai tratar a "modelState".
+  
+ - Método OperacaoValida    
+    - Retorna se tem notificação de erro, ou não.
+
+ - Método NotificarErroModelInvalida: 
+    - Ele notifica o erro da modelState invalida.
+    - Pega apenas os erros usando o linQ com o método "SelectMany".
+    - Dentro de um for, garante que foi pego um método do "Exception" também.
+    - chama o método "NotificarErro()" passando as mensagens como parametro.
+   
+ - Método NotificarErro:
+    - Lança o objeto notificação para uma fila de erros.
+    - Esse método recebe uma instancia de "INotificador", que foi injetada no construtor.
+    - a interface INotificador já foi implementada em outro arquivo.
+   
+ - Método CustomResponse
+    - Trata o erro da ModelState, erros antes da camada de negocios.
+    - Esse método retorna um "ActionResult", e recebe um "ModelStateDictionary".
+    - Ele verifica se a modelState está valida.
+    - Se não for valida, então chama o método "NotificarErroModelInvalida".
+    - Caso seja valida chama a sobreCarga do método "CustomResponse".
+
+ - SobreCarga do método CustomResponse
+    - Tratamento de erros da camada de negocios.
+    - A diferença principal é que ele recebe um object com valor de null como parametro.
+    - Se não tiver notificação retorna 200, se não retorna um bad Request.
+
+### Aplicando os métodos de resposta customisada na controller.
+
+### Adicionar
+ - É executado o "CustomResponse" quando inicia a requisição para valiar a ModelState.
+ - E é executada o "CustomResponse" no final da requisição.
+ - "CustomResponse" já trata os erros e acertos.
+
+<blockquete>
+
+            [HttpPost]
+            public async Task<ActionResult<FornecedorViewModel>> Adicionar(FornecedorViewModel fornecedorViewModel)
+            {
+                if (!ModelState.IsValid) return CustomResponse(ModelState);
+                       
+                await _fornecedorService.Adicionar(_mapper.Map<Fornecedor>(fornecedorViewModel));
+
+                return CustomResponse(fornecedorViewModel);
+            }
+
+</blockquete>
+
+### Atualizar
+ - O tratamento que verifica se os id são iguais, não precisa ser trocado por "CustomResponse", 
+ a não ser que queira passar uma mensagem.
+  
+<blockquete>
+
+            [HttpPut("{id:guid}")]
+            public async Task<ActionResult<FornecedorViewModel>> Atualizar(Guid id, FornecedorViewModel fornecedorViewModel)
+            {
+                if (id != fornecedorViewModel.Id)
+                {
+                    NotificarErro(mensagem: "O id informado não é o mesmo que foi passado  na query");
+                    return CustomResponse(fornecedorViewModel);
+                }
+
+                if (!ModelState.IsValid) return CustomResponse(ModelState);
+                        
+                await _fornecedorService.Atualizar(_mapper.Map<Fornecedor>(fornecedorViewModel));
+                       
+                return CustomResponse(fornecedorViewModel);
+            }
+
+</blockquete>
 
 
+### Excluir
+ - Em alguns casos não precisa por o "CustomResponse";
+  
+<blockquete>
+
+            [HttpDelete("{id:guid}")]
+            public async Task<ActionResult<FornecedorViewModel>> Excluir(Guid id)
+            {
+                var fornecedorViewModel = await ObterFornecedorEndereco(id);
+
+                if (fornecedorViewModel == null) return NotFound();
+
+                await _fornecedorService.Remover(id);
+
+                //return Ok(fornecedorViewModel);   
+                return CustomResponse(fornecedorViewModel);
+            }
+
+</blockquete>
+
+### Inportante: herdando classe com Injeção de Dependencia!
+ - A interface "INotificador" deve ser injetada também na classe "FornecedoresController", porque a classe
+ "MainController" que é herdada tem ela injetada também, e depois passar para classe base.
+
+### finalizando a FornecedoresController
+
+- Cria uma action chamada "ObterEnderecoPorId".
+ 
+<blockquete>
+
+            [HttpGet("endereco/{id:guid}")]
+            public async Task<EnderecoViewModel> ObterEnderecoPorId(Guid id)
+            {
+                return _mapper.Map<EnderecoViewModel>(await _enderecoRepository.ObterPorId(id));
+            }
+
+</blockquete>
+
+- Cria uma action chamada "AtualizarEndereco".
+ 
+<blockquete>
+
+            //[ClaimsAuthorize("Fornecedor", "Atualizar")]
+            [HttpPut("endereco/{id:guid}")]
+            public async Task<IActionResult> AtualizarEndereco(Guid id, EnderecoViewModel enderecoViewModel)
+            {
+                if (id != enderecoViewModel.Id)
+                {
+                    NotificarErro("O id informado não é o mesmo que foi passado na query");
+                    return CustomResponse(enderecoViewModel);
+                }
+
+                if (!ModelState.IsValid) return CustomResponse(ModelState);
+
+                await _fornecedorService.AtualizarEndereco(_mapper.Map<Endereco>(enderecoViewModel));
+
+                return CustomResponse(enderecoViewModel);
+            }
+
+</blockquete>
+
+# Cadastro de Produtos e upload de imagem
 
  - 
  -
  -
  -
+ -
 
  
+<blockquete>
+
+</blockquete>
 
  
- <blockquete>
+<blockquete>
 
- </blockquete>
-
- 
- <blockquete>
-
- </blockquete>
+</blockquete>
 
  
--
+<blockquete>
 
-
-
- 
- <blockquete>
-
- </blockquete>
-
- 
- <blockquete>
-
- </blockquete>
-
-
- 
- <blockquete>
-
- </blockquete>
-
- 
- <blockquete>
-
- </blockquete>
-
- 
- <blockquete>
-
- </blockquete>
-
- 
- <blockquete>
-
- </blockquete>
+</blockquete>
 
 
 

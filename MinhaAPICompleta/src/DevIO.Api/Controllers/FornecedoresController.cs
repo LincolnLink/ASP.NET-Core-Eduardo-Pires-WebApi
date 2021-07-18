@@ -79,7 +79,6 @@ namespace DevIO.Api.Controllers
         }
 
 
-
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult<FornecedorViewModel>> Excluir(Guid id)
         {

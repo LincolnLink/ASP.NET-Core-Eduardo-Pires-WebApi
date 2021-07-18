@@ -846,21 +846,95 @@ faz isso antes mesmo da validar a modelstate.
 
 # Cadastro de Produtos e upload de imagem
 
+ - O CRUD do controller é o mesmo do fornecedor, só muda o tipo de objeto e interface de repositorio e serviço.
+ - O desafio fica na parte de fazer o UPLOAD da imagem.
+
+### UPLOAD da imagem
+
+ - Cria um método com um algoritimo que é uma receita de bolo na internet.
+
+ - Converte o string para base64, usando o método "Convert.FromBase64String()"
+
+ - Verifica com o método "IsNullOrEmpty()", se o arquivo está null ou vazio.
+ - Se tiver null ou vazio pode notificar usando o método "NotificarErro" ou passando erro na modelState.
+
+ - Pega o diretorio mais o nome da imagem que foi passada, usando o método "Path.Combine()", e
+ bota na variavel "filePath".
+
+ - Verifica se a imgaem já existe, usando o método "System.IO.File.Exists(filePath)".
+ - Caso já exista a imagem, use o método "NotificarErro()" ou adiciona na modelState 
+ uando o "ModelState.AddModelError()".
+
+ - Se não salva a imagem "System.IO.File.WriteAllBytes(filePath, imageDataByteArray);", retorne verdadeiro.
+  
+<blockquete>
+
+            private bool UploadArquivo(string arquivo, string imgNome)
+            {
+                // Converte o string para base64.
+                var imageDataByteArray = Convert.FromBase64String(arquivo);
+
+                // Se o arquivo estiver null ou vazio.
+                if(string.IsNullOrEmpty(arquivo))
+                {
+                    // Adiciona o erro na modelState ou notifica o erro.
+                    //ModelState.AddModelError(key: string.Empty, errorMessage: "Forneça uma imagem para este produto!");
+
+                    //Pode notificar ou adicionar na modelstate, caso não tenha o método de notificação.
+                    NotificarErro(mensagem: "Forneça uma imagem para este produto!");
+                    return false;
+                }
+
+                // Pega o diretorio mais o nome da imagem que foi passada.
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/imagens", imgNome);
+
+                // Verifica se a imgaem já existe
+                if (System.IO.File.Exists(filePath))
+                {
+                    // Se existe, retorna um erro informando que ela já existe no sistema.
+                    //ModelState.AddModelError(key: string.Empty, errorMessage: "Já existe um arquivo com este nome!");
+
+                    // Tem a alternativa de notificar o erro usando o método NotificarErro()
+                    NotificarErro(mensagem:"Já existe um arquivo com este nome!");
+                    return false;
+                }
+
+                // Salva o arquivo na pasta
+                System.IO.File.WriteAllBytes(filePath, imageDataByteArray);
+
+                return true;
+            }
+
+</blockquete>
+
+### Aplicando o método na action que adiciona.
+
+ - Cria um nome personalizado para a imagem.
+  
+<blockquete>
+
+            // Criando nome personalizado, e chamando o método que faz upload de imagem.
+            var imagemNome = Guid.NewGuid() + "_" + produtoViewModel.Imagem;
+            if(!UploadArquivo(produtoViewModel.ImagemUpload, imagemNome))
+            {
+                // Caso de erro notifica o erro para o client.
+                return CustomResponse(produtoViewModel);
+            }
+
+</blockquete>
+
+# Consumindo a API via Angular 7
+
  - 
  -
  -
  -
  -
+ -
+ -
+
 
  
-<blockquete>
-
-</blockquete>
-
- 
-<blockquete>
-
-</blockquete>
 
  
 <blockquete>

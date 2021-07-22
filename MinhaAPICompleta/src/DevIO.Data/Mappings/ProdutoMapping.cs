@@ -24,8 +24,7 @@ namespace DevIO.Data.Mappings
                 .HasColumnType("decimal(18,2)");
 
             // Define o campo como requirido, define o tipo da coluna            
-            builder.Property(p => p.Descricao)
-                .IsRequired()
+            builder.Property(p => p.Descricao)                
                 .HasColumnType("varchar(1000)");
 
             // Define o campo como requirido, define o tipo da coluna            

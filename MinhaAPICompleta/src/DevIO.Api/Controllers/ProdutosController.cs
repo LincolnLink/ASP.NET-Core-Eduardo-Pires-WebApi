@@ -2,6 +2,7 @@
 using DevIO.Api.ViewModels;
 using DevIO.Business.Interfaces;
 using DevIO.Business.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -12,8 +13,8 @@ using System.Threading.Tasks;
 
 namespace DevIO.Api.Controllers
 {
-    [Route("api/produtos")]
-    [EnableCors("SiteCorsPolicy")]
+    [Route("api/produtos")]       
+    [EnableCors("AllowAll")]
     public class ProdutosController : MainController
     {        
         private readonly IMapper _mapper;
@@ -54,6 +55,7 @@ namespace DevIO.Api.Controllers
 
 
         [HttpPost]
+        [EnableCors("AllowAll")]
         public async Task<ActionResult<ProdutoViewModel>> Adicionar(ProdutoViewModel produtoViewModel)
         {
             if (!ModelState.IsValid) return CustomResponse(ModelState);

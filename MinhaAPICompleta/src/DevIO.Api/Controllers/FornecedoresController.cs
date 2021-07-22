@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Cors;
 namespace DevIO.Api.Controllers
 {
     [Route("api/fornecedores")]
-    [EnableCors("SiteCorsPolicy")]
+    [EnableCors("AllowAll")]
     public class FornecedoresController : MainController
     {
         private readonly IMapper _mapper;

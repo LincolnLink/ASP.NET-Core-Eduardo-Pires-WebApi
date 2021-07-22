@@ -29,7 +29,13 @@ export abstract class BaseService {
         return {
             headers: new HttpHeaders({
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.obterTokenUsuario()}`
+                'X-Requested-With': 'XMLHttpRequest',
+                'MyClientCert': '',        // This is empty
+                'MyToken': ''   ,        // This is empty , 'Authorization': `Bearer ${this.obterTokenUsuario()}`,
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, PATCH, DELETE',
+                'Access-Control-Allow-Headers':'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers',
+
             })
         };
     }

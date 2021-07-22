@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { Observable } from 'rxjs';
+import { interval, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { Produto } from '../models/Produto';
 import { Fornecedor } from '../models/Fornecedor';
@@ -68,8 +69,14 @@ export class CadastroComponent implements OnInit {
   }
 
   onError(fail: any) {
+    interval(3000);
+    console.log("erro chato: ", fail);
     this.errors = fail.error.errors;
+   // JSON.stringify(fail)
+
   }
+
+
 
   produtoHandleAlternativo(produto: Produto): Observable<Produto> {
 
@@ -105,7 +112,7 @@ export class CadastroComponent implements OnInit {
   manipularReader(readerEvt: any) {
     var binaryString = readerEvt.target.result;
     this.imageBase64 = btoa(binaryString);
-  } 
+  }
 }
 
 

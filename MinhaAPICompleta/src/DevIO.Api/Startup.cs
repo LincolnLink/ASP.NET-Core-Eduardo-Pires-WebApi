@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,16 +42,23 @@ namespace DevIO.Api
                 options.SuppressModelStateInvalidFilter = true;
             });
 
-            services.ResolveDependencies();
-
+            
             services.AddControllers().AddNewtonsoftJson();
 
             // ********************
             // Setup CORS
             // ********************
-            services.AddCors(options => options.AddPolicy("AllowAll", p => p.AllowAnyOrigin()
-                                                                    .AllowAnyMethod()
-                                                                     .AllowAnyHeader()));
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                   configurePolicy: builder => builder.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+
+                     );                
+            });
+
+            services.ResolveDependencies();
 
         }
 
@@ -59,16 +67,21 @@ namespace DevIO.Api
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
                 app.UseCors("AllowAll");
+                app.UseDeveloperExceptionPage();                
             }
-             
+            else
+            {
+                app.UseCors("AllowAll"); // Usar apenas nas demos => Configuração Ideal: Production
+                app.UseHsts();
+            }
+
             app.UseRouting();
-                      
-            app.UseAuthorization();
 
             app.UseCors("AllowAll");
 
+            app.UseAuthorization();
+                       
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

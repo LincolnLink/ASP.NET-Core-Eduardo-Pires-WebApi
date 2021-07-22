@@ -2,6 +2,7 @@
 using System.Linq;
 using DevIO.Business.Interfaces;
 using DevIO.Business.Notificacoes;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -12,9 +13,9 @@ namespace DevIO.Api.Controllers
     /// <summary>
     /// Classe Base das controllers, Class abstrata so pode ser herdada.
     /// Validação de notificação de erro, ModelState e Operações de Negocios.
-    /// </summary>
-    [ApiController]
-    [EnableCors("SiteCorsPolicy")]
+    /// </summary>    
+    [ApiController]   
+    [EnableCors("AllowAll")]
     public abstract class MainController : ControllerBase
     {
         

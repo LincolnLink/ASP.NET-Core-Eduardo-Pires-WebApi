@@ -948,6 +948,19 @@ faz isso antes mesmo da validar a modelstate.
 
 <blockquete>
 
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                   configurePolicy:builder => builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials());
+            });
+            
+</blockquete>
+
+<blockquete>
+
             app.UseCors("AllowAll");
 
 </blockquete>

@@ -2,6 +2,7 @@
 using System.Linq;
 using DevIO.Business.Interfaces;
 using DevIO.Business.Notificacoes;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
@@ -13,6 +14,7 @@ namespace DevIO.Api.Controllers
     /// Validação de notificação de erro, ModelState e Operações de Negocios.
     /// </summary>
     [ApiController]
+    [EnableCors("SiteCorsPolicy")]
     public abstract class MainController : ControllerBase
     {
         

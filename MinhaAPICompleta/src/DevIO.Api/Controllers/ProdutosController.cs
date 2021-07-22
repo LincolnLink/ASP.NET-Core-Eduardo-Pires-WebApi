@@ -2,6 +2,7 @@
 using DevIO.Api.ViewModels;
 using DevIO.Business.Interfaces;
 using DevIO.Business.Models;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -12,8 +13,9 @@ using System.Threading.Tasks;
 namespace DevIO.Api.Controllers
 {
     [Route("api/produtos")]
+    [EnableCors("SiteCorsPolicy")]
     public class ProdutosController : MainController
-    {
+    {        
         private readonly IMapper _mapper;
         private readonly IProdutoService _produtoService;
         private readonly IProdutoRepository _produtoRepository;
@@ -41,7 +43,9 @@ namespace DevIO.Api.Controllers
         public async Task<ActionResult<ProdutoViewModel>> ObterPorId(Guid id)
         {
             // Converte o o model fornecedor para fornecedorViewModel.
-            var fornecedor = await ObterProdutosFornecedor(id);
+            // var fornecedor = await ObterProdutosFornecedor(id);
+            var fornecedor = await _produtoRepository.ObterPorId(id);
+
 
             if (fornecedor == null) return NotFound(); //404 não encontrado.
 
@@ -62,6 +66,7 @@ namespace DevIO.Api.Controllers
                 return CustomResponse(produtoViewModel);
             }
 
+            produtoViewModel.Imagem = imagemNome;
             await _produtoService.Adicionar(_mapper.Map<Produto>(produtoViewModel));
 
             return CustomResponse(produtoViewModel);
@@ -88,7 +93,8 @@ namespace DevIO.Api.Controllers
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult<ProdutoViewModel>> Excluir(Guid id)
         {
-            var produtoViewModel = await ObterProdutosFornecedor(id);
+            var produtoViewModel = await ObterPorId(id);
+            //var produtoViewModel = await ObterProdutosFornecedor(id);
 
             if (produtoViewModel == null) return NotFound();
 
@@ -110,10 +116,7 @@ namespace DevIO.Api.Controllers
         /// <param name="imgNome">nome da imagem</param>
         /// <returns></returns>
         private bool UploadArquivo(string arquivo, string imgNome)
-        {
-            // Converte o string para base64.
-            var imageDataByteArray = Convert.FromBase64String(arquivo);
-
+        {          
             // Se o arquivo estiver null ou vazio.
             if(string.IsNullOrEmpty(arquivo))
             {
@@ -125,8 +128,11 @@ namespace DevIO.Api.Controllers
                 return false;
             }
 
+            // Converte o string para base64.
+            var imageDataByteArray = Convert.FromBase64String(arquivo);
+
             // Pega o diretorio mais o nome da imagem que foi passada.
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/imagens", imgNome);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Angular/src/assets", imgNome);
 
             // Verifica se a imgaem já existe
             if (System.IO.File.Exists(filePath))

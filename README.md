@@ -925,12 +925,60 @@ faz isso antes mesmo da validar a modelstate.
 
 # Consumindo a API via Angular 7
 
+ - Bota o projeto em Angular para rodar, não esqueça de desligar o IIS e reiniciar o pc,
+ também deve limpar o cache, cookies, etc, fazer isso tudo para não dar erro.
+
+ - instala o nodeModule "npm i".
+
+ - Troca a URL no serviço para fazer as requisições corretamente.
+
+ - Sean ajudou a configurar o cors.
+ https://stackoverflow.com/questions/40043097/cors-in-net-core
+
+ - Cria uma configuração na startUp, para não receber erro de cors, o 
+ primiero é dentro do método "ConfigureServices" e o segundo é dentro do "Configure"
+
+
+<blockquete>
+
+            services.AddCors(options => options.AddPolicy("AllowAll", p => 
+                p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+
+</blockquete>
+
+<blockquete>
+
+            app.UseCors("AllowAll");
+
+</blockquete>
+
+ - Na startUp adiciona o "AddNewtonsoftJson()", para evitar erros.
+
+ 
+<blockquete>
+
+            "services.AddControllers().AddNewtonsoftJson();".
+
+</blockquete>
+
+
+ - Cria uma configuração melhorada no arquivo que tem o "AutomapperConfig()", 
+ para que todas as propriedades da viewModel seja alimentadas.
+
+ - Com isso pega o nome do fornecedor.
+
+ 
+<blockquete>
+
+            CreateMap<ProdutoViewModel, Produto>();
+ 
+            CreateMap<Produto, ProdutoViewModel>()
+                .ForMember(dest => dest.NomeFornecedor, opt => opt.MapFrom(src => src.Fornecedor.Nome));
+
+</blockquete>
+
  - 
- -
- -
- -
- -
- -
+
  -
 
 

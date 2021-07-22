@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using DevIO.Api.ViewModels;
 using DevIO.Business.Models;
 using DevIO.Business.Interfaces;
+using Microsoft.AspNetCore.Cors;
 
 namespace DevIO.Api.Controllers
 {
     [Route("api/fornecedores")]
+    [EnableCors("SiteCorsPolicy")]
     public class FornecedoresController : MainController
     {
         private readonly IMapper _mapper;

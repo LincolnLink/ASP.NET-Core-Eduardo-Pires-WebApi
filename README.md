@@ -1145,11 +1145,103 @@ dentro de uma pasta chamada data que deve ser criada.
 
 # Controller de Autenticação
  
- -  
+ - Cria um viewModel chamada "UserViewModel", nesse arquivo se cria varias viewModel.
+    - RegisterUserViewModel.
+    - LoginUserViewModel.
+    - UserTokenViewModel.
+    - LoginResponseViewModel.
+    - ClaimViewModel.
+
+ - Cria o controller chamado "AuthController", herda a classe "MainController", ele é responsavel por
+ fazer login e resgistro de usuarios.
+
+### Registrar
+
+ - Cria o método "Registrar", que recebe um "RegisterUserViewModel" como parametro.
+
+ - Injeta as dependencias "UserManager", responsavel por cria usuario e fazer outras manipulações.
+ - Injeta as dependencias "SignInManager", responsavel por autenticar o usuario.
+ - Injeta a dependencia de "INotificador" que ja foi usada para notificar erros.
+
+ - Verifica se a ModelState é valida.
+ - Cria um objto IdentityUser.
+ - Usando o _userManager, chama o método ".CreateAsync(user, registerUser.Password);",
+ passando o usuario e senha, passando o resultado para uma variavel.
+ - Usando a propriedade "Succeeded", verifica se foi criado corretamente.
+ - Se teve sucesso, então usa o "_signInManager" para chamar o método ".SignInAsync(user, false);",
+ o false é para informar se deve ser salvo as informações no proximo login.
  - 
- -
- -
- -
+   
+<blockquete>
+
+            [HttpPost("nova-conta")]
+            public async Task<ActionResult> Registrar(RegisterUserViewModel registerUser)
+            {
+
+                if (!ModelState.IsValid) return CustomResponse(ModelState);
+
+                var user = new IdentityUser
+                {
+                    UserName = registerUser.Email,
+                    Email = registerUser.Email,
+                    EmailConfirmed = true
+                };
+
+                var result = await _userManager.CreateAsync(user, registerUser.Password);
+                if (result.Succeeded)
+                {
+                    await _signInManager.SignInAsync(user, false);
+                    return CustomResponse(await GerarJwt(user.Email));
+                }
+                foreach (var error in result.Errors)
+                {
+                    NotificarErro(error.Description);
+                }
+
+                return CustomResponse(registerUser);
+            }
+
+</blockquete>
+
+### Login
+
+ - Criando a action de logar, recebe como parametro um objeto "LoginUserViewModel"
+ - Verifica se a modelState é valida.
+ - Usa o "_signInManager" para chamada o método 
+ "PasswordSignInAsync(loginUser.Email, loginUser.Password, false, true);", ele recebe o usuario, senha e
+ dois bool, o primeiro é para informar se é persistence, e o segundo vai travar o usuario para tentativas
+ invalidas depois de x minutos.
+
+ - Caso consiga logar com sucesso cria documenta no logger. 
+ - Se não conseguiu logar trata o erro com "CustomResponse".
+
+ 
+<blockquete>
+
+            [HttpPost("entrar")]
+            public async Task<ActionResult> Login(LoginUserViewModel loginUser)
+            {
+                if (!ModelState.IsValid) return CustomResponse(ModelState);
+
+                var result = await _signInManager.PasswordSignInAsync(loginUser.Email, loginUser.Password, false, true);
+
+                if (result.Succeeded)
+                {
+                    return CustomResponse(loginUser);
+                    //_logger.LogInformation("Usuario " + loginUser.Email + " logado com sucesso");
+                    //return CustomResponse(await GerarJwt(loginUser.Email));
+                }
+                if (result.IsLockedOut)
+                {
+                    NotificarErro("Usuário temporariamente bloqueado por tentativas inválidas");
+                    return CustomResponse(loginUser);
+                }
+
+                NotificarErro("Usuário ou Senha incorretos");
+                return CustomResponse(loginUser);
+            }
+
+</blockquete>
 
 
 

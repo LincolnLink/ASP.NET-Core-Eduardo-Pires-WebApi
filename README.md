@@ -994,14 +994,14 @@ faz isso antes mesmo da validar a modelstate.
 
 # Upload de arquivos grandes com IFormFile.
 
-- Cria um outra viewModel chamada "ProdutoImagemViewModel".
-- Nela vc troca o tipo do "ImagemUpload" para "IFormFile".
-- Esse tipo carrega a imagem em fatias.
-- Duplica o método adicionar, e renomeia para adicionarAlternativo.
-- Bota o nome da rota para "[HttpPost("Adicionar")]", recebendo um "ProdutoImagemViewModel".
-- Não precisa concatenar com guid, apenas cria um guid, para usar como nome.
-- Chama o método "UploadArquivoAlternativo", faz o tratamento para ver se existe ou se tem um tamanho.
-- salva o nome na propriedade "Imagem".
+ - Cria um outra viewModel chamada "ProdutoImagemViewModel".
+ - Nela vc troca o tipo do "ImagemUpload" para "IFormFile".
+ - Esse tipo carrega a imagem em fatias.
+ - Duplica o método adicionar, e renomeia para adicionarAlternativo.
+ - Bota o nome da rota para "[HttpPost("Adicionar")]", recebendo um "ProdutoImagemViewModel".
+ - Não precisa concatenar com guid, apenas cria um guid, para usar como nome.
+ - Chama o método "UploadArquivoAlternativo", faz o tratamento para ver se existe ou se tem um tamanho.
+ - salva o nome na propriedade "Imagem".
  
 <blockquete>
 
@@ -1025,7 +1025,7 @@ faz isso antes mesmo da validar a modelstate.
 
 </blockquete>
 
-- Método que sobe imagem Alternativo.
+ - Método que sobe imagem Alternativo.
 
 <blockquete>
 
@@ -1064,38 +1064,94 @@ faz isso antes mesmo da validar a modelstate.
 
 </blockquete>
 
-- TODO !!!
+ - TODO !!!
 
 # Concluindo a modelagem da API
 
-- Cria o método atualizar. 
+ - Cria o método atualizar. 
 
-- Cria um classe chamada "ApiConfig" nela isola algumas configrações da classe StratUp.
+ - Cria um classe chamada "ApiConfig" nela isola algumas configrações da classe StratUp.
 
-- 
+# Autenticação
 
--
--
--
+ - Tratando da segurança da API.
+ - Bota o atributo "Authorize" nas controllers.
+ - Bota o atributo "[AllowAnonymous]" nas actions que vc esta liberando para todas as pessoas.
 
+# Implementando o ASP.NET Identity
 
-<blockquete>
+### 1° passo 
 
-
-</blockquete>
-
-
-
--
--
--
--
-
+ - Cria um classe chamada "IdentityConfig.cs". para isolar a confgiração do Identity
+ - Chama a classe isolada no startUp.
+ - Paasa a "configuration" por parametro, que é a configuração da conectionString.
 
 <blockquete>
 
+            services.AddIdentityConfig(Configuration);
 
 </blockquete>
+
+ - Cria um outro dbcontext chamado "ApplicationDbContext", 
+dentro de uma pasta chamada data que deve ser criada.
+ - Configurao o ApplicationDbContext.
+
+<blockquete>
+
+            public class ApplicationDbContext : IdentityDbContext
+            {
+                public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+            }
+
+</blockquete>
+
+ - Copia e cola a configuração do "AddDbContext" que esta na startUp para a o método "AddIdentityConfig",
+ que esta na classe "IdentityConfig", usando o contexto "ApplicationDbContext".
+
+ - executa o comando para gerar a migration.
+
+ 
+<blockquete>
+
+            add-migration Identity -Context ApplicationDbContext 
+
+</blockquete>
+
+ - Executa o comando que gera as tabelas.
+
+<blockquete>
+
+            update-database -Context ApplicationDbContext 
+
+</blockquete>
+
+### 2° passo 
+
+ - Configurando  a model do Identity.
+ - "AddRoles<IdentityRole>()" determina uma classe com regras, foi passada a padrão.
+ - "AddEntityFrameworkStores<ApplicationDbContext>()" informa que esta trabalhando com entityframework.
+ - "AddDefaultTokenProviders" gerador de token para resetar senha e confirmar email.
+<blockquete>
+
+           services.AddDefaultIdentity<IdentityUser>()
+                .AddRoles<IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
+                //.AddErrorDescriber<IdentityMensagensPortugues>()
+
+</blockquete>
+ 
+ - No método "UseApiConfig" que fica na classe "ApiConfig" bota a coonfiguração "app.UseAuthentication();".
+
+# Controller de Autenticação
+ 
+ -  
+ - 
+ -
+ -
+ -
+
+
 
 -
 -

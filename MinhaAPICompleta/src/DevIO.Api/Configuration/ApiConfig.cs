@@ -75,7 +75,7 @@ namespace DevIO.Api.Configuration
             app.UseRouting();
             app.UseCors("AllowAll");
 
-            //app.UseAuthentication();
+            app.UseAuthentication();
             app.UseAuthorization();
 
             //app.UseStaticFiles();

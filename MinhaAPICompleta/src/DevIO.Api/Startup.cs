@@ -36,7 +36,8 @@ namespace DevIO.Api
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
             });
 
-            //services.AddIdentityConfig(Configuration);
+            // Passa o configuration porq vai usar a conectionString.
+            services.AddIdentityConfig(Configuration);
 
             services.AddAutoMapper(typeof(Startup)); 
 

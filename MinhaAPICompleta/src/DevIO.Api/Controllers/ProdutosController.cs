@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace DevIO.Api.Controllers
 {
+    [Authorize]
     [Route("api/produtos")]
     [EnableCors("AllowAll")]
     public class ProdutosController : MainController
@@ -34,6 +35,7 @@ namespace DevIO.Api.Controllers
 
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProdutoViewModel>>> ObterTodos()
         {
@@ -73,23 +75,7 @@ namespace DevIO.Api.Controllers
 
             return CustomResponse(produtoViewModel);
         }
-
-        /*
-        [HttpPut("{id:guid}")]
-        public async Task<ActionResult<ProdutoViewModel>> Atualizar(Guid id, ProdutoViewModel produtoViewModel)
-        {
-            if (id != produtoViewModel.Id)
-            {
-                NotificarErro(mensagem: "O id informado não é o mesmo que foi passado  na query");
-                return CustomResponse(produtoViewModel);
-            }
-
-            if (!ModelState.IsValid) return CustomResponse(ModelState);
-
-            await _produtoService.Atualizar(_mapper.Map<Produto>(produtoViewModel));
-
-            return CustomResponse(produtoViewModel);
-        }*/
+                
 
         //[ClaimsAuthorize("Produto", "Atualizar")]
         [HttpPut("{id:guid}")]
@@ -221,9 +207,7 @@ namespace DevIO.Api.Controllers
             return Ok(file);
         }
 
-        /// <summary>
-        /// Cria imagens de arquivos pesados.
-        /// </summary>        
+        /// <summary> Cria imagens de arquivos pesados.</summary>        
         private async Task<bool> UploadArquivoAlternativo(IFormFile arquivo, string imgPrefixo)
         {
             if (arquivo == null || arquivo.Length == 0)

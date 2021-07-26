@@ -990,15 +990,231 @@ faz isso antes mesmo da validar a modelstate.
 
 </blockquete>
 
- - 
+ - Botão de excluir, vizualizar deve ser inplementado depois.
 
- -
+# Upload de arquivos grandes com IFormFile.
 
-
- 
-
+- Cria um outra viewModel chamada "ProdutoImagemViewModel".
+- Nela vc troca o tipo do "ImagemUpload" para "IFormFile".
+- Esse tipo carrega a imagem em fatias.
+- Duplica o método adicionar, e renomeia para adicionarAlternativo.
+- Bota o nome da rota para "[HttpPost("Adicionar")]", recebendo um "ProdutoImagemViewModel".
+- Não precisa concatenar com guid, apenas cria um guid, para usar como nome.
+- Chama o método "UploadArquivoAlternativo", faz o tratamento para ver se existe ou se tem um tamanho.
+- salva o nome na propriedade "Imagem".
  
 <blockquete>
+
+            //[ClaimsAuthorize("Produto", "Adicionar")]
+            [HttpPost("Adicionar")]
+            public async Task<ActionResult<ProdutoViewModel>> AdicionarAlternativo(ProdutoImagemViewModel produtoViewModel)
+            {
+                if (!ModelState.IsValid) return CustomResponse(ModelState);
+
+                var imgPrefixo = Guid.NewGuid() + "_";
+                if (!await UploadArquivoAlternativo(produtoViewModel.ImagemUpload, imgPrefixo))
+                {
+                    return CustomResponse(ModelState);
+                }
+
+                produtoViewModel.Imagem = imgPrefixo + produtoViewModel.ImagemUpload.FileName;
+                await _produtoService.Adicionar(_mapper.Map<Produto>(produtoViewModel));
+
+                return CustomResponse(produtoViewModel);
+            }
+
+</blockquete>
+
+- Método que sobe imagem Alternativo.
+
+<blockquete>
+
+            //[DisableRequestSizeLimit]
+            [RequestSizeLimit(40000000)]
+            [HttpPost("imagem")]
+            public ActionResult AdicionarImagem(IFormFile file)
+            {
+                return Ok(file);
+            }
+       
+            private async Task<bool> UploadArquivoAlternativo(IFormFile arquivo, string imgPrefixo)
+            {
+                if (arquivo == null || arquivo.Length == 0)
+                {
+                    NotificarErro("Forneça uma imagem para este produto!");
+                    return false;
+                }
+
+                var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Angular/src/assets", imgPrefixo + arquivo.FileName);
+
+                if (System.IO.File.Exists(path))
+                {
+                    NotificarErro("Já existe um arquivo com este nome!");
+                    return false;
+                }
+
+                using (var stream = new FileStream(path, FileMode.Create))
+                {
+                    await arquivo.CopyToAsync(stream);
+                }
+
+                return true;
+            }
+
+
+</blockquete>
+
+- TODO !!!
+
+# Concluindo a modelagem da API
+
+- Cria o método atualizar. 
+
+- Cria um classe chamada "ApiConfig" nela isola algumas configrações da classe StratUp.
+
+- 
+
+-
+-
+-
+
+
+<blockquete>
+
+
+</blockquete>
+
+
+
+-
+-
+-
+-
+
+
+<blockquete>
+
+
+</blockquete>
+
+-
+-
+-
+-
+
+
+<blockquete>
+
+
+</blockquete>
+
+-
+-
+-
+-
+
+
+<blockquete>
+
+
+</blockquete>
+
+-
+-
+-
+-
+
+
+<blockquete>
+
+
+</blockquete>
+
+-
+-
+-
+-
+
+
+<blockquete>
+
+
+</blockquete>
+
+-
+-
+-
+-
+
+
+<blockquete>
+
+
+</blockquete>
+
+-
+-
+-
+-
+
+
+<blockquete>
+
+
+</blockquete>
+
+-
+-
+-
+-
+
+
+<blockquete>
+
+
+</blockquete>
+
+-
+-
+-
+-
+
+
+<blockquete>
+
+
+</blockquete>
+
+-
+-
+-
+-
+
+
+<blockquete>
+
+
+</blockquete>
+
+-
+-
+-
+-
+
+
+<blockquete>
+
+
+</blockquete>
+
+-
+-
+-
+-
+
+
+<blockquete>
+
 
 </blockquete>
 

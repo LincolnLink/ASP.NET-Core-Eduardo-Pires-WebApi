@@ -20,14 +20,15 @@ namespace DevIO.Api
 {
     public class Startup
     {
+        public IConfiguration Configuration { get; }
+
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-        }
+        }        
 
-        public IConfiguration Configuration { get; }
-
-        // This method gets called by the runtime. Use this method to add services to the container.
+        
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<MeuDbContext>(options =>
@@ -35,57 +36,28 @@ namespace DevIO.Api
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
             });
 
-            services.AddAutoMapper(typeof(Startup));
+            //services.AddIdentityConfig(Configuration);
 
-            services.Configure<ApiBehaviorOptions>(options =>
-            {
-                options.SuppressModelStateInvalidFilter = true;
-            });
+            services.AddAutoMapper(typeof(Startup)); 
 
-            
-            services.AddControllers().AddNewtonsoftJson();
+            services.AddApiConfig();
 
-            // ********************
-            // Setup CORS
-            // ********************
-            services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAll",
-                   configurePolicy: builder => builder.AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader()
+            //services.AddSwaggerConfig();
 
-                     );                
-            });
+            //services.AddLoggingConfig(Configuration);
 
             services.ResolveDependencies();
 
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseCors("AllowAll");
-                app.UseDeveloperExceptionPage();                
-            }
-            else
-            {
-                app.UseCors("AllowAll"); // Usar apenas nas demos => Configuração Ideal: Production
-                app.UseHsts();
-            }
+        {  
+            app.UseApiConfig(env);
 
-            app.UseRouting();
+            //app.UseSwaggerConfig(provider);
 
-            app.UseCors("AllowAll");
-
-            app.UseAuthorization();
-                       
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            //app.UseLoggingConfiguration();
         }
     }
 }

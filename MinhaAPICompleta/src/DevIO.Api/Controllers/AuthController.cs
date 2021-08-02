@@ -1,12 +1,18 @@
-﻿using DevIO.Api.ViewModels;
+﻿using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
+using DevIO.Api.Controllers;
+using DevIO.Api.Extensions;
+using DevIO.Api.ViewModels;
 using DevIO.Business.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace DevIO.Api.Controllers
 {
@@ -15,24 +21,26 @@ namespace DevIO.Api.Controllers
     public class AuthController : MainController
     {
         private readonly ILogger _logger;
+        private readonly AppSettings _appSettings;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
 
         public AuthController(
-            INotificador notificador,
+            INotificador notificador, //IUser user,
             ILogger<AuthController> logger,
-            UserManager<IdentityUser> userManager,
-            SignInManager<IdentityUser> signInManager) : base(notificador)
+            IOptions<AppSettings> appSettings,
+            UserManager<IdentityUser> userManager,            
+            SignInManager<IdentityUser> signInManager) : base(notificador)//,user
         {
             _logger = logger;
             _userManager = userManager;
             _signInManager = signInManager;
+            _appSettings = appSettings.Value;
         }
 
         [HttpPost("nova-conta")]
         public async Task<ActionResult> Registrar(RegisterUserViewModel registerUser)
         {
-
             if (!ModelState.IsValid) return CustomResponse(ModelState);
 
             var user = new IdentityUser
@@ -46,8 +54,10 @@ namespace DevIO.Api.Controllers
             if (result.Succeeded)
             {
                 await _signInManager.SignInAsync(user, false);
-                return CustomResponse(registerUser);
+
+                // Gerando o token e devolve ele !
                 //return CustomResponse(await GerarJwt(user.Email));
+                return CustomResponse(GerarJwt());
             }
             foreach (var error in result.Errors)
             {
@@ -66,10 +76,10 @@ namespace DevIO.Api.Controllers
             var result = await _signInManager.PasswordSignInAsync(loginUser.Email, loginUser.Password, false, true);
 
             if (result.Succeeded)
-            {
-                return CustomResponse(loginUser);
-                //_logger.LogInformation("Usuario " + loginUser.Email + " logado com sucesso");
+            {               
+                _logger.LogInformation("Usuario " + loginUser.Email + " logado com sucesso");
                 //return CustomResponse(await GerarJwt(loginUser.Email));
+                return CustomResponse(GerarJwt());
             }
             if (result.IsLockedOut)
             {
@@ -81,10 +91,10 @@ namespace DevIO.Api.Controllers
             return CustomResponse(loginUser);
         }
 
-
-        /*
-        private async Task<LoginResponseViewModel> GerarJwt(string email)
+        //private async Task<LoginResponseViewModel> GerarJwt(string email)//string email
+        private string GerarJwt()
         {
+            /*
             var user = await _userManager.FindByEmailAsync(email);
             var claims = await _userManager.GetClaimsAsync(user);
             var userRoles = await _userManager.GetRolesAsync(user);
@@ -92,29 +102,32 @@ namespace DevIO.Api.Controllers
             claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id));
             claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email));
             claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
-            claims.Add(new Claim(JwtRegisteredClaimNames.Nbf, ToUnixEpochDate(DateTime.UtcNow).ToString()));
-            claims.Add(new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64));
+            //claims.Add(new Claim(JwtRegisteredClaimNames.Nbf, ToUnixEpochDate(DateTime.UtcNow).ToString()));
+            //claims.Add(new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64));
+
             foreach (var userRole in userRoles)
             {
                 claims.Add(new Claim("role", userRole));
             }
 
             var identityClaims = new ClaimsIdentity();
-            identityClaims.AddClaims(claims);
+            identityClaims.AddClaims(claims);*/
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
             var token = tokenHandler.CreateToken(new SecurityTokenDescriptor
             {
                 Issuer = _appSettings.Emissor,
-                Audience = _appSettings.ValidoEm,
-                Subject = identityClaims,
+                Audience = _appSettings.ValidoEm,               
                 Expires = DateTime.UtcNow.AddHours(_appSettings.ExpiracaoHoras),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                //  Subject = identityClaims,
             });
 
             var encodedToken = tokenHandler.WriteToken(token);
 
+            return encodedToken;
+            /*
             var response = new LoginResponseViewModel
             {
                 AccessToken = encodedToken,
@@ -127,8 +140,8 @@ namespace DevIO.Api.Controllers
                 }
             };
 
-            return response;
-        }*/
+            return response;*/
+        }
 
 
     }

@@ -1284,14 +1284,15 @@ faz isso antes mesmo da validar a modelstate.
 
 # Implementando o JWT
 
- - Na pasta de extenção cria uma classe chamada "AppSettings.cs" 
- - É uma classe para gerenciar propriedades do token 
+  - Na pasta de extenção cria uma classe chamada "AppSettings.cs" 
+  - É uma classe para gerenciar propriedades do token 
      - Secret: Chave de criptografia do token.
      - ExpiracaoHoras: expirações em horas que o token vai perder a validade.
-     - Emissor: Quem emite a aplicação.
+     - Emissor: Quem emite (a aplicação).
      - ValidoEm: Em quais URL esse token é valido.
- - Deve ser implementado essa classe no "appsettings" mesmo arquivo que fica a connectionString.
- - 
+
+  - Deve ser implementado essa classe no "appsettings.json" mesmo arquivo que fica a connectionString.
+  
 
 <blockquete>
         
@@ -1304,11 +1305,16 @@ faz isso antes mesmo da validar a modelstate.
 
 </blockquete>
 
-- Emissor e ValidoEm, são as propriedades que vai ser usada para validar o token.
-- Deve informar a url que você vai usar, para a propriedade ValidoEm.
+ - secret e emissor foi criado manualmente.
+ - o 2 em "ExpiracaoHoras" representa 2h de duração
+ - Emissor e ValidoEm, são as propriedades que vai ser usada para validar o token.
+ - Deve informar a url que você vai usar, para a propriedade ValidoEm.
 
-- Na configuração "IdentityConfig", deve configurar o JWT, apartir daqui toda configuração fica nesse classe.
-- Congifura a classe com o json, já está populando a classe.
+ - Na configuração "IdentityConfig", deve configurar o JWT, apartir daqui toda configuração fica nesse classe.
+ - Congifura a classe com o json, já está populando a classe.
+    - .GetSection(): pega a sessão do json appsettings, e guarda em uma variavel.
+    - .Configure(): cria um vinculo do json e a classe no asp.net core.
+ - Quando injetar a classe "AppSettings" ela já vai vim com os dados populados.
 
 <blockquete>
 
@@ -1317,8 +1323,10 @@ faz isso antes mesmo da validar a modelstate.
 
 </blockquete>
 
-- Pegando os dados da classe "AppSettings".
-- Definindo a chave baseado no segredo, fazendo Encoding.
+- Pegando os dados da classe "AppSettings" que acabou de ser configurada, 
+usando o método "appSettingsSection.Get<AppSettings>()".
+- Definindo a chave "key" baseado no segredo, fazendo Encoding.
+- Usa a chave que é uma coleçã ode bites, para criptografar os dados do token.
 
 <blockquete>
 
@@ -1327,9 +1335,9 @@ faz isso antes mesmo da validar a modelstate.
 
 </blockquete>
 
-### Configurando o token do JWT
+### Configurando o token do JWT (criando e configurando uma authenticação)
 
- - Adiciona a autenticação e configura.
+ - "services.AddAuthentication()": Adiciona a autenticação e configura.
 
  - DefaultAuthenticateScheme: define um padrão de validação, 
  que é gerar um token.
@@ -1346,24 +1354,24 @@ faz isso antes mesmo da validar a modelstate.
 
 </blockquete>
 
- - O método "AddJwtBearer" adiciona mais configurações.
+ - O método "AddJwtBearer()" adiciona mais configurações.
 
   - RequireHttpsMetadata: se for trabalhar apenas com Https, 
-  pode deixar true, define que só vai trabalhar com https.
+  pode deixar true, define que só vai trabalhar com https, para evitar ataques.
 
   - SaveToken: Pergunta se o token deve ser guardado no 
   "AuthenticationProperties", depois de uma autenticação de sucesso.
 
   - É bom que quarde porq fica mais facil da aplicação validar,
-  a ppos a apresentação do token.
+  app apresentação do token.
 
-### outras configurações
+### outras configurações (criando o token)
  - TokenValidationParameters: Cria uma serie de outros parametros:
 
-  - ValidateIssuerSigningKey: Verifica se quem esta emitindo e chave se é o mesmo.
-  - IssuerSigningKey: define uma chave.
-  - ValidateIssuer: valida apenas o Ussuer.
-  - ValidateAudience: aonde o token é valido
+  - ValidateIssuerSigningKey: Valida se quem esta emitindo é o mesmo que está no token.(baseada nome do Issuer e na chave).
+  - IssuerSigningKey: configura a chave, transforma de asp2 para uma chave criptografada.
+  - ValidateIssuer: valida apenas o Ussuer conforme o nome.
+  - ValidateAudience: aonde o token é valido em qual Audience.
   - ValidAudience: Informa qual é o "Audience"
   - ValidIssuer: Informa qual é o "Essuer"
 
@@ -1394,9 +1402,9 @@ faz isso antes mesmo da validar a modelstate.
 
 </blockquete>
 
-### Configurando o controller
+### Configurando o controller auth (Devolvendo o token que foi gerado)
 
- - O cadastro tendo sucesso, deve gerar p token e devolver para o client,
+ - O cadastro tendo sucesso, deve gerar o token e devolver para o client,
  isso na action de registro.
   
 <blockquete>
@@ -1421,13 +1429,28 @@ faz isso antes mesmo da validar a modelstate.
 ### Criando o método que gera o token e devolve pro client.
 
  - Cria um método com nome de "GerarJwt", dentro no método aplica os comandos.
- - Gera o "JwtSecurityTokenHandler".
+ 
+ - instancia a classe "JwtSecurityTokenHandler" e guarda na variavel TokenHandler.
  
 <blockquete>
 
             var tokenHandler = new JwtSecurityTokenHandler();
 
 </blockquete>
+
+ - Antes de criar a chave de criptografia, devemos receber o appSettings,
+ injetado no controlador.
+
+ - Essa injeção de dependencia é feita de uma forma diferente, é usando o "IOptions",
+ esse "IOptions" é usado para pegar dados usado de parametros.
+
+ - Por isso que no construtor é possivel passar o valor do objeto.
+
+<blockquete>
+
+        _appSettings = appSettings.Value;
+
+</blockquete
 
  - Cria a chave de criptografia: 
   
@@ -1439,10 +1462,19 @@ faz isso antes mesmo da validar a modelstate.
 
  - Gerando um token, Nessa etapa você está alimentando a configuração 
  do token, e criando ele.
-    Issuer: indica o emissor.
-    Audience: informa o ValidoEm.
-    Expires: a expiração, quanto tempo vai ser valido.
-    SigningCredentials: Passando as credenciais, criptografia e a chave.
+
+    - Issuer: indica o emissor que está no "_appSettings";
+
+    - Audience: informa o ValidoEm, que está no "_appSettings";
+
+    - Expires: a expiração, quanto tempo vai ser valido, é 
+    usado o " DateTime.UtcNow.AddHours" para usar a hora da local.
+
+    - SigningCredentials: cria uma instancia de "SigningCredentials()" e ,
+    Passando como parametro uma instancia de "SymmetricSecurityKey" nessa instancia é 
+    passado o "key" como parametro. o segundo parameto é "SecurityAlgorithms.HmacSha256Signature"
+
+    - SecurityAlgorithms.HmacSha256Signature: é um algoritimo de criptografia que vai ser usado.
 
 <blockquete>
 
@@ -1458,8 +1490,10 @@ faz isso antes mesmo da validar a modelstate.
 
 </blockquete>
 
- - Deixando o token com padrão da web.
-
+ - Escreva o token, cria uma variavel chamada "encodedToken", chama o método "tokenHandler.WriteToken()",
+ que recebe o "token" que foi configurado.
+ 
+ Esse método deixando o token com padrão da web.
 
 <blockquete>
          

@@ -1,10 +1,7 @@
 ﻿using System;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using DevIO.Api.Controllers;
 using DevIO.Api.Extensions;
 using DevIO.Api.ViewModels;
 using DevIO.Business.Interfaces;
@@ -55,8 +52,8 @@ namespace DevIO.Api.Controllers
             {
                 await _signInManager.SignInAsync(user, false);
 
-                // Gerando o token e devolve ele !
                 //return CustomResponse(await GerarJwt(user.Email));
+                // Gerando o token e devolve ele !
                 return CustomResponse(GerarJwt());
             }
             foreach (var error in result.Errors)

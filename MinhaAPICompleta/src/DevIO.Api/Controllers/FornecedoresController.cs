@@ -7,9 +7,11 @@ using DevIO.Api.ViewModels;
 using DevIO.Business.Models;
 using DevIO.Business.Interfaces;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DevIO.Api.Controllers
 {
+    [Authorize]
     [Route("api/fornecedores")]
     [EnableCors("AllowAll")]
     public class FornecedoresController : MainController
@@ -32,6 +34,7 @@ namespace DevIO.Api.Controllers
             _fornecedorRepository = fornecedorRepository;
         } 
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FornecedorViewModel>>> ObterTodos()
         {

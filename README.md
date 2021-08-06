@@ -1501,78 +1501,194 @@ usando o método "appSettingsSection.Get<AppSettings>()".
 
 </blockquete>
 
+# Autorização baseada em Claims via JWT (botando as claims no token[JWT])
 
- -
+ - Primeiro cria uma Claim do tipo "Fornecedor" e valor "Atualizar,Remover", e o id do usuario.
+ - Diretamente na tabela "dbo.AspNetUserClaims", apenas para testar.
 
+### Criando um atributo de extenção do Identity, para validar Claims!
+
+ - Cria uma classe de extenção chamada "CustomAuthorization".
+
+ - Nessa classe tem um método chamado "ValidarClaimsUsuario", que recebe como parametro
+ o contexto, o nome da claim e o valor da claim.
+
+ - Usando o contexto é possivel verificar se o usuario está autenticado, usando a
+ propriedade "IsAuthenticated".
+ - Podemos também verificar se ele tem o tipo/nome da claim e o valor da claim que foi informado,
+ usando o ".Claims.Any(...)" do linQ.
 
 <blockquete>
 
+            public class CustomAuthorization
+            {
+                public static bool ValidarClaimsUsuario(HttpContext context, string claimName, string claimValue)
+                {
+                    return context.User.Identity.IsAuthenticated &&
+                           context.User.Claims.Any(c => c.Type == claimName && c.Value.Contains(claimValue));
+                }
+            }
+
+</blockquete>
+
+
+ - Dentro do mesmo arquivo é criada uma 2° classe chamada "ClaimsAuthorizeAttribute" que recebe como herança a
+ classe "TypeFilterAttribute", dessa forma define essa 2° classe como um atributo, para ser usado nos controller.
+
+ - O método construtor dessa classe recebe o nome e valor da claim como parametro.
+
+ - Dentro do construtor é chamado uma propriedade da classe "TypeFilterAttribute" chamado "Arguments", nele é
+ atribuido uma instancia de array de objetos, aonde tem uma instancia de "Claim" que recebe o nome e o valor da claim
+ como parametro.
+
+ - Por ultimo deve passar uma 3° classe na base do construtor da 2° classe.
+
+<blockquete>
+
+            public class ClaimsAuthorizeAttribute : TypeFilterAttribute
+            {
+                public ClaimsAuthorizeAttribute(string claimName, string claimValue) : base(typeof(RequisitoClaimFilter))
+                {
+                    Arguments = new object[] { new Claim(claimName, claimValue) };
+                }
+            }
+
+</blockquete>
+
+ - Para finalizar a configuração personalizada de tratamento das claim,
+ deve se criar uma 3° classe chamada "RequisitoClaimFilter".
+
+ - Passando nessa 3° classe uma interface chamada "IAuthorizationFilter".
+ - Criando um propriedade chamada "_claim" do tipo "Claim".
+ - O construtor recebe uma injeção de dependencia de "Claim", passando para a propriedade.
+
+ - Cria um método chamado "OnAuthorization" que recebe como parametro 
+ o "context" do tipo "AuthorizationFilterContext".
+
+ - Com um if ele verifica se o usuario está autenticado usando a propriedade:
+ "context.HttpContext.User.Identity.IsAuthenticated"
+ - E com outro if verifica se o usuario tem a permição de claim, usando a primeira classe para validar.
+
+<blockquete>
+
+            public class RequisitoClaimFilter : IAuthorizationFilter
+            {
+                private readonly Claim _claim;
+
+                public RequisitoClaimFilter(Claim claim)
+                {
+                    _claim = claim;
+                }
+
+                public void OnAuthorization(AuthorizationFilterContext context)
+                {
+                    if (!context.HttpContext.User.Identity.IsAuthenticated)
+                    {
+                        context.Result = new StatusCodeResult(401);
+                        return;
+                    }
+
+                    if (!CustomAuthorization.ValidarClaimsUsuario(context.HttpContext, _claim.Type, _claim.Value))
+                    {
+                        context.Result = new StatusCodeResult(403);
+                    }
+                }
+            }
+
+</blockquete>
+
+### Aplicando o atributo personalizado no Controller de fornecedor.  
+
+ - Aplica o "[Authorize]" no controler.
+ - Passe o atributo personalizado(ClaimsAuthorize) que foi criado no action de adicionar,
+ passando o nome e valor da claim.
+ - Aplica o atributo "ClaimsAuthorize" nas action de atualizar, atualizarEndereco e remover.
+
+<blockquete>
+
+            [ClaimsAuthorize("Fornecedor","Adicionar")]
+            [HttpPost]
+            public async Task<ActionResult<FornecedorViewModel>> Adicionar(FornecedorViewModel fornecedorViewModel)
+            {
+                if (!ModelState.IsValid) return CustomResponse(ModelState);
+                       
+                await _fornecedorService.Adicionar(_mapper.Map<Fornecedor>(fornecedorViewModel));
+
+                return CustomResponse(fornecedorViewModel);
+            }         
+
+</blockquete>
+
+### Passando as claims para o token.
+
+ - Voltando ao método("GerarJwt()") que cria os tokens, que fica na "AuthController".
+ - É passado por parametro deo método GerarJwt(), um email do tipo string.
+
+ - Com esse email é possivel obter o usuario usando o método "_userManager.FindByEmailAsync(email)".
+ - Com o usuario é possivel obter uma LISTA de Claims e as Roles.
+
+ - O método GerarJwt() ele se torna async, troca o retorno dele para "async Task<string>".
+
+<blockquete>
+
+            var user = await _userManager.FindByEmailAsync(email);
+            var claims = await _userManager.GetClaimsAsync(user);
+            var userRoles = await _userManager.GetRolesAsync(user);
          
-
 </blockquete>
 
+### Passando Claims adicionais para o token.
 
- -
+ - É passado para para a variavel "claims" algumas outras claims.
+ - É criado um método privado chamado "ToUnixEpochDate", para converter a hora para um tipo especifico.
+ aonde é passada a hora exata da região.
 
+ - É passado também para a variavel claim, as Roles.
+
+ - É preciso fazer uma conversão da list de claim para IdentityClams, isso é possivel
+ usando o método "identityClaims.AddClaims", deve ser criado antes uma instancia de "ClaimsIdentity" para
+ ultilizar o método.
 
 <blockquete>
 
-         
+            claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Nbf, ToUnixEpochDate(DateTime.UtcNow).ToString()));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64));
+ 
+            foreach (var userRole in userRoles)
+            {
+               claims.Add(new Claim("role", userRole));
+            }
+
+            var identityClaims = new ClaimsIdentity();
+            identityClaims.AddClaims(claims);
 
 </blockquete>
 
-
- -
-
+- Com essa lista de claims completa e convertida, devemos passar para o token, ultilizando 
+o atributo  "Subject". 
 
 <blockquete>
 
-         
+            var token = tokenHandler.CreateToken(new SecurityTokenDescriptor
+            {
+               
+                Subject = identityClaims,
+                ....
+            });
 
 </blockquete>
 
+- Para finalizar devemos passar o email como parametro aonde o método GerarJwt() é chamado.
+- [OBS]Não esqueça de por "awat" agora que o método GerarJwt() é async !, se não ele retorna o result que é uma maquina de stado.
+- Testando o put no postman. provavel que vá da 200.
 
- -
+- Testando o adicionar no postman, provavel que de 403 porque não tem a autorização.
 
+- 
 
-<blockquete>
-
-         
-
-</blockquete>
-
-
- -
-
-
-<blockquete>
-
-         
-
-</blockquete>
-
-
- -
-
-
-<blockquete>
-
-         
-
-</blockquete>
-
--
--
--
--
-
-
-<blockquete>
-
-
-</blockquete>
-
--
 -
 -
 -

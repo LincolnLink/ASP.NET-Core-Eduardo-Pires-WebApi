@@ -27,6 +27,7 @@ export class LoginComponent implements OnInit {
   login() {
     if (this.userForm.valid && this.userForm.dirty) {
 
+      // Transforma o objeto vazio, em um objeto do tipo user com o valores passado.
       let _user = Object.assign({}, this.user, this.userForm.value);
 
       this.userService.login(_user)

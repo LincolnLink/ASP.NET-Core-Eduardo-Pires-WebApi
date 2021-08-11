@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -53,7 +54,7 @@ namespace DevIO.Api.Controllers
             {
                 await _signInManager.SignInAsync(user, false);
 
-                //return CustomResponse(await GerarJwt(user.Email));
+                
                 // Gerando o token e devolve ele !
                 return CustomResponse(await GerarJwt(user.Email));
             }
@@ -75,8 +76,7 @@ namespace DevIO.Api.Controllers
 
             if (result.Succeeded)
             {               
-                _logger.LogInformation("Usuario " + loginUser.Email + " logado com sucesso");
-                //return CustomResponse(await GerarJwt(loginUser.Email));
+                _logger.LogInformation("Usuario " + loginUser.Email + " logado com sucesso");                
                 return CustomResponse(await GerarJwt(loginUser.Email));
             }
             if (result.IsLockedOut)
@@ -90,7 +90,7 @@ namespace DevIO.Api.Controllers
         }
 
         //private async Task<LoginResponseViewModel> GerarJwt(string email)//string email
-        private async Task<string> GerarJwt(string email)
+        private async Task<LoginResponseViewModel> GerarJwt(string email)
         {
             
             var user = await _userManager.FindByEmailAsync(email);
@@ -125,8 +125,9 @@ namespace DevIO.Api.Controllers
 
             var encodedToken = tokenHandler.WriteToken(token);
 
-            return encodedToken;
-            /*
+            //return encodedToken;
+            // uma forma de retorno aonde é possivel passar mais informações alem do token.
+            
             var response = new LoginResponseViewModel
             {
                 AccessToken = encodedToken,
@@ -139,7 +140,7 @@ namespace DevIO.Api.Controllers
                 }
             };
 
-            return response;*/
+            return response;
         }
 
 

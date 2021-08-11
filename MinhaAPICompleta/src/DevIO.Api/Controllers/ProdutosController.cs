@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using DevIO.Api.Extensions;
 using DevIO.Api.ViewModels;
 using DevIO.Business.Interfaces;
 using DevIO.Business.Models;
@@ -35,7 +36,7 @@ namespace DevIO.Api.Controllers
 
         }
 
-        [AllowAnonymous]
+        
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProdutoViewModel>>> ObterTodos()
         {
@@ -56,7 +57,7 @@ namespace DevIO.Api.Controllers
             return Ok(produtoViewModel); //200 Ok
         }
 
-        //[ClaimsAuthorize("Produto", "Adicionar")]
+        [ClaimsAuthorize("Produto", "Adicionar")]
         [HttpPost]
         public async Task<ActionResult<ProdutoViewModel>> Adicionar(ProdutoViewModel produtoViewModel)
         {
@@ -77,7 +78,7 @@ namespace DevIO.Api.Controllers
         }
                 
 
-        //[ClaimsAuthorize("Produto", "Atualizar")]
+        [ClaimsAuthorize("Produto", "Atualizar")]
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Atualizar(Guid id, ProdutoViewModel produtoViewModel)
         {
@@ -116,7 +117,7 @@ namespace DevIO.Api.Controllers
             return CustomResponse(produtoViewModel);
         }
 
-        //[ClaimsAuthorize("Produto", "Excluir")]
+        [ClaimsAuthorize("Produto", "Excluir")]
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult<ProdutoViewModel>> Excluir(Guid id)
         {
@@ -181,7 +182,7 @@ namespace DevIO.Api.Controllers
 
         #region UploadAlternativo
 
-        //[ClaimsAuthorize("Produto", "Adicionar")]
+        [ClaimsAuthorize("Produto", "Adicionar")]
         [HttpPost("Adicionar")]
         public async Task<ActionResult<ProdutoViewModel>> AdicionarAlternativo(ProdutoImagemViewModel produtoViewModel)
         {

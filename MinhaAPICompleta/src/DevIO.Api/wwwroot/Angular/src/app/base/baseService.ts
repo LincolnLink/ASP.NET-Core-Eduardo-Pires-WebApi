@@ -3,7 +3,7 @@ import { throwError } from 'rxjs';
 
 export abstract class BaseService {
 
-    protected UrlServiceV1: string = "http://localhost:5000/api/";
+    protected UrlServiceV1: string = "https://localhost:5001/api/";
     //protected UrlServiceV1: string = "http://localhost:36787/api/";
     //protected UrlServiceV1: string = "https://localhost:36787/api/v1/";
     //protected UrlServiceV1: string = "https://devioapi.azurewebsites.net/api/v1/";
@@ -31,7 +31,8 @@ export abstract class BaseService {
                 'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
                 'MyClientCert': '',        // This is empty
-                'MyToken': ''   ,        // This is empty , 'Authorization': `Bearer ${this.obterTokenUsuario()}`,
+                'MyToken': ''   ,        // This is empty ,
+                'Authorization': `Bearer ${this.obterTokenUsuario()}`,
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, PATCH, DELETE',
                 'Access-Control-Allow-Headers':'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers',

@@ -1667,7 +1667,7 @@ usando o método "appSettingsSection.Get<AppSettings>()".
 
 </blockquete>
 
-- Com essa lista de claims completa e convertida, devemos passar para o token, ultilizando 
+ - Com essa lista de claims completa e convertida, devemos passar para o token, ultilizando 
 o atributo  "Subject". 
 
 <blockquete>
@@ -1681,39 +1681,290 @@ o atributo  "Subject".
 
 </blockquete>
 
-- Para finalizar devemos passar o email como parametro aonde o método GerarJwt() é chamado.
-- [OBS]Não esqueça de por "awat" agora que o método GerarJwt() é async !, se não ele retorna o result que é uma maquina de stado.
-- Testando o put no postman. provavel que vá da 200.
+ - Para finalizar devemos passar o email como parametro aonde o método GerarJwt() é chamado.
+ - [OBS]Não esqueça de por "awat" agora que o método GerarJwt() é async !, se não ele retorna o result que é uma maquina de stado.
+ - Testando o put no postman. provavel que vá da 200.
 
-- Testando o adicionar no postman, provavel que de 403 porque não tem a autorização.
+ - Testando o adicionar no postman, provavel que de 403 porque não 
+tem a autorização(não tem a claim de adicionar).
 
-- 
+# Finalizando a autorização com JWT (retornando mais dados além do token para o usuario)
 
--
--
--
+ - Vamos criar mais 3 viewModel para devolver mais informações para
+ o usuario.
+
+ - 1° viewModel: UserTokenViewModel, aonde tem o id, email e uma lista de
+ claimsVielModel.
+ - 2° viewModel: ClaimViewModel, aonde tem o tipo e valor das claims
+ - 3° viewModel: LoginResponseViewModel, aonde tem o token, o tempo de expiração,
+ e o UserTOken.
+
+ - O método "GerarJwt" deve retornar agora uma "Task<LoginResponseViewModel>"
+ - No final do método cria uma instancia de "LoginResponseViewModel", passando os valores de:
+
+    - AccessToken: que é o "encodedToken", o token completo e finalizado.
+
+    - ExpiresIn: que é o tempo de inspiração, deve ser convertido usando o 
+    "TimeSpan.FromHours(_appSettings.ExpiracaoHoras).TotalSeconds," convertendo para segundos.
+
+    - UserToken: cria uma instancia de "UserTokenViewModel", passa o id e o email, a propriedade Claims,
+    recebe o list de claims, aonde com o método ".select()" do linQ, cria instancias de "ClaimViewModel"
+    para cada claim, passando tipo e valor
+
+ - É retornado um objeto complexo.
+
+<blockquete>
+
+            {
+                "success": true,
+                "data": {
+                    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJGb3JuZWNlZG9yIjoiQXR1YWxpemFyLEV4Y2x1aXIiLCJzdWIiOiI0MmI5YzJjMC03NDAzLTQ2ZWQtODQxNi02NjliOGM5OWNiZTciLCJlbWFpbCI6ImxpbmsyQGVtYWlsLmNvbSIsImp0aSI6IjI0NjA5ODIxLTA2YWItNDUyOS04NzBiLWVmM2UzZTc1ODdiOSIsIm5iZiI6MTYyODI3NTA5OCwiaWF0IjoxNjI4Mjc1MDk4LCJleHAiOjE2MjgyODIyOTgsImlzcyI6Ik1ldVNpc3RlbWEiLCJhdWQiOiJodHRwczovL2xvY2FsaG9zdCJ9.1W80QVE0ms-tyZ1SkxrrYX-KUW9V6KhdqLeFMOg0he8",
+                    "expiresIn": 7200.0,
+                    "userToken": {
+                        "id": "42b9c2c0-7403-46ed-8416-669b8c99cbe7",
+                        "email": "link2@email.com",
+                        "claims": [
+                            {
+                                "value": "Atualizar,Excluir",
+                                "type": "Fornecedor"
+                            },
+                            {
+                                "value": "42b9c2c0-7403-46ed-8416-669b8c99cbe7",
+                                "type": "sub"
+                            },
+                            {
+                                "value": "link2@email.com",
+                                "type": "email"
+                            },
+                            {
+                                "value": "24609821-06ab-4529-870b-ef3e3e7587b9",
+                                "type": "jti"
+                            },
+                            {
+                                "value": "1628275098",
+                                "type": "nbf"
+                            },
+                            {
+                                "value": "1628275098",
+                                "type": "iat"
+                            }
+                        ]
+                    }
+                }
+            }
+
+</blockquete>
+
+# Consumindo e testando a segurança da API via Angular
+
+ - Aplica as claims e Authorize no controller de produto.
+
+### Na aplicação em Angular configura o component de Login.
+
+### LoginComponent 
+
+ - Cria um formulario com o campo email e password.
+ - Cria um método login, Com o if verifica se os dados são validos e se não estão sujos.
+ - Transforma o objeto vazio, em um objeto do tipo user com o valores passado, usando "Object.assign".
+ - Chama o serviço "UserService" que tem o método de login, que faz a requisição para a API.
+
+ - Retornando sucesso, método "onSaveComplete" que salva o token e outras informação no navegador.
+ - É passado os dados para o navegador, usando o método "persistirUserApp" do serviço "UserService".
+ - Volta para a pagina que lista os produtos usando "this.router.navigateByUrl('/lista-produtos');"
+
+<blockquete>
+                userForm: FormGroup;
+                user: User;
+                errors: any[] = [];
+
+                constructor(private fb: FormBuilder,
+                private router: Router,
+                private userService: UserService) { }
+
+                ngOnInit() {
+                    this.userForm = this.fb.group({
+                        email: '',
+                        password: ''
+                    });
+                }
+
+                login() {
+                    if (this.userForm.valid && this.userForm.dirty) {
+
+                        // Transforma o objeto vazio, em um objeto do tipo user com o valores passado.
+                        let _user = Object.assign({}, this.user, this.userForm.value);
+
+                        this.userService.login(_user)
+                        .subscribe(
+                            result => { this.onSaveComplete(result) },
+                            fail => { this.onError(fail) }
+                        );
+                    }
+                }
+           
+                onSaveComplete(response: any) {
+                this.userService.persistirUserApp(response);
+                this.router.navigateByUrl('/lista-produtos');
+                }
+
+</blockquete>
+    
+### UserService 
+ - O serviço tem o método "login()" que retorna um Observable<User> e "persistirUserApp".
+
+ - login: a url que serve para a fazer a requisição, está dentro da propriedade "UrlServiceV1".
+ - Essa propriedade fica no "BaseService", uma classe que é herdada.
+ - com isso faz a concatenação com "entrar" que é a action que faz login, "user" que é o objeto que tem email e senha,
+ e o método "super.ObterHeaderJson()".
+
+ -Tem um tratamento dentro do .map, aonde vai ser retornado o objeto ou um objeto vazio.
+
+ - persistirUserApp(): cria um localStorage, com o nome de "app.token" para quardar o "response.accessToken",
+ que é o token gerado na API.
+ - Também cria um localStorage chamado "app.user" que é um objeto com os dados do usuario.
+ - O localStorage "app.user" é convertido para string, usando o metodo "JSON.stringify", para poder ser salvo.
+
+<blockquete>
+
+                @Injectable()
+                export class UserService extends BaseService {
+
+                    constructor(private http: HttpClient) { super() }
+
+                    login(user: User): Observable<User> {
+
+                        return this.http
+                            .post(this.UrlServiceV1 + 'entrar', user, super.ObterHeaderJson())
+                            .pipe(
+                                map(super.extractData),
+                                catchError(super.serviceError)
+                            );
+                    }
+
+                    persistirUserApp(response: any){
+                        localStorage.setItem('app.token', response.accessToken);
+                        // transforma em string para poder armazenar.
+                        localStorage.setItem('app.user', JSON.stringify(response.userToken));
+                    }
+                }
+
+</blockquete>
+
+ - O método "super.ObterHeaderJson()" fica na classe "BaseService", ele retorna um objeto que tem a propriedade "headers".
+  
+<blockquete>
+
+                protected ObterHeaderJson() {
+                    return {
+                        headers: new HttpHeaders({
+                            'Content-Type': 'application/json'
+                        })
+                    };
+                }
+
+</blockquete>
+
+### MenuUserComponent.html
+
+ - Usa o component Angular "ngSwitch" para informar se o usuario está logado ou não.
+ - 
+
+<blockquete>
+
+                <ul [ngSwitch]="userLogado()" class="nav navbar-nav navbar-right">
+                        <li *ngSwitchCase="false"><a  class="nav-link text-dark" [routerLink]="['/entrar']">Entrar</a></li>
+                        <li *ngSwitchCase="true"><a  class="nav-link text-dark">{{ saudacao }}</a></li>
+                </ul>
+
+</blockquete>
+
+### MenuUserComponent.ts
+
+ - Chama o servico que tem o método "obterUsuario" para verificar se tem usuario logado ou não. 
+
+<blockquete>
+
+                saudacao: string;
+
+                constructor(private userService: UserService) {  }
+
+                userLogado(): boolean {
+
+                    var user = this.userService.obterUsuario();
+                    if (user) {
+                        this.saudacao = "Olá " + user.email;
+                        return true;
+                    }
+
+                    return false;
+                }
+
+</blockquete>
+
+### BaseService
+
+- No serviço "BaseService" tem um método "obterUsuario" que pega dados do "localStorage" usnado o método "getItem".
+- É passado a chave do "localStorage" que tem o nome "'app.token'", esse resultado é convertido 
+usando o método "JSON.parse()"
 
 
 <blockquete>
 
+                public obterUsuario() {
+                    return JSON.parse(localStorage.getItem('app.user'));
+                }
 
 </blockquete>
 
--
--
--
--
+### Passando um HEADER em uma requisição do Angular.
 
+ - É passado um método chamado "ObterAuthHeaderJson()", como 2° parametro na requisição.
 
 <blockquete>
 
+                obterTodos(): Observable<Produto[]> {
+                    return this.http
+                        .get<Produto[]>(this.UrlServiceV1 + "produtos", super.ObterAuthHeaderJson())
+                        .pipe(
+                            catchError(this.serviceError));
+                }
 
 </blockquete>
 
--
--
--
--
+ - Ele retorna um objeto que tem um propriedade chamada "headers", que é uma instancia de "HttpHeaders"
+ - Essa informação é importante, por que dessa forma é passada o token do usuario logado, usando o atributo "Authorization".
+ - O valor passado é o tipo do token e uma concatenação do método que retorna no token usando o método "obterTokenUsuario".
+ - O método "obterTokenUsuario()" obtem o token do localStorage.
+ - Assim ele autoriza a fazer as requisições.
+  
+<blockquete>
+
+                protected ObterAuthHeaderJson(){
+                    return {
+                        headers: new HttpHeaders({
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'MyClientCert': '',        // This is empty
+                            'MyToken': ''   ,        // This is empty ,
+                            'Authorization': `Bearer ${this.obterTokenUsuario()}`,
+                            'Access-Control-Allow-Origin': '*',
+                            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, PATCH, DELETE',
+                            'Access-Control-Allow-Headers':'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers',
+
+                        })
+                    };
+                }
+
+</blockquete>
+
+# 
+ 
+
+
+ -
+ -
+ -
+ -
 
 
 <blockquete>

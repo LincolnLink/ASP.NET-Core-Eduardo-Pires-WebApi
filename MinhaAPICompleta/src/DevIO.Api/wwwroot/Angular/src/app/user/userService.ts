@@ -24,6 +24,7 @@ export class UserService extends BaseService {
 
     persistirUserApp(response: any){
         localStorage.setItem('app.token', response.accessToken);
+        // transforma em string para poder armazenar.
         localStorage.setItem('app.user', JSON.stringify(response.userToken));
     }
 }

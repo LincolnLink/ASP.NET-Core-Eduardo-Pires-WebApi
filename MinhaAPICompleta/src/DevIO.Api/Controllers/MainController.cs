@@ -20,21 +20,22 @@ namespace DevIO.Api.Controllers
     {
         
         private readonly INotificador _notificador;
-        //public readonly IUser AppUser;
+        public readonly IUser AppUser;
 
         protected Guid UsuarioId { get; set; }
         protected bool UsuarioAutenticado { get; set; }
 
-        protected MainController(INotificador notificador) //,IUser appUser
+        protected MainController(INotificador notificador, IUser appUser)
         {
             _notificador = notificador;
-            //AppUser = appUser;
-            /*
+            // Propriedade usada nas controller para ter facil acesso.
+            AppUser = appUser;
+            
             if (appUser.IsAuthenticated())
             {
                 UsuarioId = appUser.GetUserId();
                 UsuarioAutenticado = true;
-            }*/
+            }
         }
         
         /// <summary>

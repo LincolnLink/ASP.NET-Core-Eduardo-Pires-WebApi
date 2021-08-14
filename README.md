@@ -1903,8 +1903,8 @@ tem a autorização(não tem a claim de adicionar).
 
 ### BaseService
 
-- No serviço "BaseService" tem um método "obterUsuario" que pega dados do "localStorage" usnado o método "getItem".
-- É passado a chave do "localStorage" que tem o nome "'app.token'", esse resultado é convertido 
+ - No serviço "BaseService" tem um método "obterUsuario" que pega dados do "localStorage" usnado o método "getItem".
+ - É passado a chave do "localStorage" que tem o nome "'app.token'", esse resultado é convertido 
 usando o método "JSON.parse()"
 
 
@@ -1957,45 +1957,186 @@ usando o método "JSON.parse()"
 
 </blockquete>
 
-# 
- 
+# Interagindo com o usuário logado de qualquer camada
 
+ - No controler é possivel ter acesso ao usuario logado usando uma classe/propriedade chamada "User",
+ aonde é possivel obter alguns valores do usuario logado.
+ - Mas só é possivel ter acesso na camada de Controller, porem esse tutorial vai explicar 
+ ter como obter acesso em qualquer camada.
 
- -
- -
- -
- -
-
-
-<blockquete>
-
-
-</blockquete>
-
--
--
--
--
-
+ - Na camada de negocio, cria uma interface chamada "IUser".
 
 <blockquete>
 
+                public interface IUser
+                {
+                    /// <summary>Nome do usuario </summary>
+                    string Name { get;}
+
+                    /// <summary>Obtenha o Id </summary>
+                    Guid GetUserId();
+
+                    /// <summary>Obtenha o email </summary>
+                    string GetUserEmail();
+
+                    /// <summary>Verifica se está autenticado </summary>
+                    bool IsAuthenticated();
+
+                    /// <summary>Verifica se tem a Role informada </summary>
+                    bool IsInRole(string role);
+
+                    /// <summary>Retorna uma lista de Claim </summary>
+                    IEnumerable<Claim> GetClaimsIdentity();
+
+                }
 
 </blockquete>
 
--
--
--
--
-
+ - Na pasta de extenções na camada de Api, cria uma classe chamada "AspNetUser.cs" 
+para implementar a interface.
 
 <blockquete>
 
+                public class AspNetUser : IUser
+                {
+                    private readonly IHttpContextAccessor _accessor;
+
+                    public AspNetUser(IHttpContextAccessor accessor)
+                    {
+                        _accessor = accessor;
+                    }
+
+                    public string Name => _accessor.HttpContext.User.Identity.Name;
+
+                    public Guid GetUserId()
+                    {
+                        return IsAuthenticated() ? Guid.Parse(_accessor.HttpContext.User.GetUserId()) : Guid.Empty;
+                    }
+
+                    public string GetUserEmail()
+                    {
+                        return IsAuthenticated() ? _accessor.HttpContext.User.GetUserEmail() : "";
+                    }
+
+                    public bool IsAuthenticated()
+                    {
+                        return _accessor.HttpContext.User.Identity.IsAuthenticated;
+                    }
+
+                    public bool IsInRole(string role)
+                    {
+                        return _accessor.HttpContext.User.IsInRole(role);
+                    }
+
+                    public IEnumerable<Claim> GetClaimsIdentity()
+                    {
+                        return _accessor.HttpContext.User.Claims;
+                    }
+                }
+
+                public static class ClaimsPrincipalExtensions
+                {
+                    public static string GetUserId(this ClaimsPrincipal principal)
+                    {
+                        if (principal == null)
+                        {
+                            throw new ArgumentException(nameof(principal));
+                        }
+
+                        var claim = principal.FindFirst(ClaimTypes.NameIdentifier);
+                        return claim?.Value;
+                    }
+
+                    public static string GetUserEmail(this ClaimsPrincipal principal)
+                    {
+                        if (principal == null)
+                        {
+                            throw new ArgumentException(nameof(principal));
+                        }
+
+                        var claim = principal.FindFirst(ClaimTypes.Email);
+                        return claim?.Value;
+                    }
+                }
 
 </blockquete>
 
--
--
+ - O método "ClaimsPrincipalExtensions" cria uma extenção dos métodos da classe "ClaimsPrincipal".
+ - Essa extenção funciona passando um atriuto do tipo "ClaimsPrincipal", com o "this" antes. como parametro 
+   para um método static, de uma classe static, esse método será uma extenção de da classe "ClaimsPrincipal".
+
+ - Faz um tratamento verificando se a classe é null.
+ - Com o método "FindFirst()" é possivel obter uma valor informado pelo parametro.
+ - Retornando o valor do que foi passando no parametro. (ler a documentação para entender melhor.)
+ - https://docs.microsoft.com/pt-br/dotnet/api/system.security.claims.claimsprincipal.findfirst?view=net-5.0
+
+ - Cria uma injeção de dependencia da interface "IHttpContextAccessor".
+ - Ela permite acessar o httpContext de qualquer lugar.
+
+    - GetUserId(): Caso o usuario esteja autenticado, retorne o id do usuario, se não retorna um guid vazio.
+
+    - GetUserEmail():  Caso o usuario esteja autenticado, retorne o email do usuario, se não retorna uma strig vazia.
+
+    - IsAuthenticated(): Retorna se o suaurio está autenticado.
+
+    - IsInRole(): verifica se o usuario tem aquela Role.
+    https://docs.microsoft.com/pt-br/dotnet/api/system.web.security.roleprincipal.isinrole?view=netframework-4.8
+
+    - GetClaimsIdentity(): retorna uma lista de Claim.
+
+### configurando a injelçao de dependencia.
+ - Configurando a dependencia na classe "DependencyInjectionConfig".
+ - Usa o "AddSingleton" na interface "IHttpContextAccessor", para não confundir de usuario.
+
+<blockquete>
+
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddScoped<IUser, AspNetUser>();  
+
+</blockquete>
+
+### configurando na mainController.
+
+ - Na classe "MainController" o controller que todos herdam, é criado uma propriedade chamada "AppUser",
+ do tipo "IUser", aonde recebe uma injeção de dependencia de "IUser".
+
+ - Cria uma propriedade chamada "UsuarioAutenticado" do tipo bool que recebe true ou false se o usuario estiver logado ou não. 
+ - Cria uma propriedade chamada "UsuarioId" que recebe o id do usuario caso ele esteja logado.
+ - Essas propriedade ajuda na logica de programar, caso seja preciso.
+  
+<blockquete>
+
+                    protected Guid UsuarioId { get; set; }
+                    protected bool UsuarioAutenticado { get; set; }
+
+                    protected MainController(INotificador notificador, IUser appUser)
+                    {
+                        _notificador = notificador;
+                        // Propriedade usada nas controller para ter facil acesso.
+                        AppUser = appUser;
+            
+                        if (appUser.IsAuthenticated())
+                        {
+                            UsuarioId = appUser.GetUserId();
+                            UsuarioAutenticado = true;
+                        }
+                    }
+
+</blockquete>
+
+ - Toda controller que herda a MainController, deve injetar o "IUser" e por no ": base()" que fica no método construtor.
+
+### Manipulando o usuario no serviço do produto. (camada de negocio).
+
+- Faz uma injeção de dependencia de "IUser", no construtor do serviço.
+- Usa a propriedade e chama o método "GetUserId()", para obter o id do usuario,
+ e atribui em uma variavel.
+
+ - [Ferramenta do VS] quando está debugando pode usar a  ferramentachamada "QuickWatch",
+para explorar outros valores dentro de uma propriedade que é um objeto por exemplo.
+
+ -  
+
 -
 -
 

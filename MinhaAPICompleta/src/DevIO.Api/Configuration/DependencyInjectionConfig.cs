@@ -25,7 +25,7 @@ namespace DevIO.Api.Configuration
             services.AddScoped<IProdutoService, ProdutoService>();
             
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            //services.AddScoped<IUser, AspNetUser>();    
+            services.AddScoped<IUser, AspNetUser>();    
 
             //services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 

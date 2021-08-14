@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
+using DevIO.Business.Interfaces;
 using Microsoft.AspNetCore.Http;
 
 namespace DevIO.Api.Extensions
 {
-    /*
+    
     public class AspNetUser : IUser
     {
         private readonly IHttpContextAccessor _accessor;
@@ -67,5 +68,5 @@ namespace DevIO.Api.Extensions
             return claim?.Value;
         }
     }
-    */
+    
 }

@@ -25,10 +25,10 @@ namespace DevIO.Api.Controllers
         private readonly IProdutoRepository _produtoRepository;
 
         public ProdutosController(
-            IMapper mapper,
+            IMapper mapper, IUser user,
             INotificador notificador,
             IProdutoService produtoServico,
-            IProdutoRepository produtoRepository) : base(notificador)
+            IProdutoRepository produtoRepository) : base(notificador, user)
         {
             _mapper = mapper;
             _produtoService = produtoServico;

@@ -2135,10 +2135,17 @@ para implementar a interface.
  - [Ferramenta do VS] quando está debugando pode usar a  ferramentachamada "QuickWatch",
 para explorar outros valores dentro de uma propriedade que é um objeto por exemplo.
 
- -  
+# Trabalhando com HTTPS
 
--
--
+ - Devemos configurar na StartUp com o uso do "Hsts" para informar que ele só aceita o https.
+ - Mas devemos usar o "app.UseHttpsRedirection();" para redirecionar o usuario ao https.
+ - Testar quando a aplicação estiver no ar (em produção).
+
+# CORS - Cross-Origin Resource Sharing
+
+ - 
+ - 
+
 
 
 <blockquete>

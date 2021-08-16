@@ -2143,8 +2143,13 @@ para explorar outros valores dentro de uma propriedade que é um objeto por exem
 
 # CORS - Cross-Origin Resource Sharing
 
- - 
- - 
+ - O CORS ele relaxa a segurança do sistema, para o front end fazer requisições.
+
+ - options.AddDefaultPolicy(): define uma politica padrão.
+ - AllowCredentials(): não tem muita efetividade.
+ 
+ - [DisableCors] : desativa o cors na controller, assim deixa mais seguro, nada sobreescreve ele, no asp.net core 2.2.
+ - preciso fazer alguns testes.
 
 
 

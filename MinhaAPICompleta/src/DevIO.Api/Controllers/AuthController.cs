@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using DevIO.Api.Extensions;
 using DevIO.Api.ViewModels;
 using DevIO.Business.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -15,8 +17,8 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace DevIO.Api.Controllers
 {
-    //[Route("api/v{version:apiVersion}")]
-    [Route("api")]
+    //[Route("api/v{version:apiVersion}")]   
+    [Route("api")]    
     public class AuthController : MainController
     {
         private readonly ILogger _logger;
@@ -66,7 +68,7 @@ namespace DevIO.Api.Controllers
             return CustomResponse(registerUser);
         }
 
-
+        
         [HttpPost("entrar")]
         public async Task<ActionResult> Login(LoginUserViewModel loginUser)
         {

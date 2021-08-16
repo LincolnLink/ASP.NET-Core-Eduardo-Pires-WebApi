@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Net.Http.Headers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,8 +47,18 @@ namespace DevIO.Api.Configuration
                    configurePolicy: builder => builder.AllowAnyOrigin()
                         .AllowAnyMethod()
                         .AllowAnyHeader()
+                     );                
+                
+                options.AddPolicy(name: "Production",
+                    configurePolicy: builder =>
+                     builder
+                     .WithMethods("GET")
+                     .WithOrigins("http://localhost:4200", "https://localhost:4200")
+                     .SetIsOriginAllowedToAllowWildcardSubdomains()
+                     //.WithHeaders(HeaderNames.ContentType, "x-custom-header")
+                     .AllowAnyHeader());
+                    
 
-                     );
             });
 
             //services.AddHealthChecksUI();
@@ -58,6 +69,9 @@ namespace DevIO.Api.Configuration
 
         public static IApplicationBuilder UseApiConfig(this IApplicationBuilder app, IWebHostEnvironment env)
         {
+
+            app.UseRouting();
+
             if (env.IsDevelopment())
             {
                 app.UseCors("AllowAll");
@@ -65,15 +79,15 @@ namespace DevIO.Api.Configuration
             }
             else
             {
-                app.UseCors("AllowAll"); // Usar apenas nas demos => Configuração Ideal: Production
+                app.UseCors("Production"); // Usar apenas nas demos => Configuração Ideal: Production
                 app.UseHsts();
             }
 
             //app.UseMiddleware<ExceptionMiddleware>();
             //app.UseHttpsRedirection();
 
-            app.UseRouting();
-            app.UseCors("AllowAll");
+           
+            //app.UseCors("AllowAll");
 
             app.UseAuthentication();
             app.UseAuthorization();

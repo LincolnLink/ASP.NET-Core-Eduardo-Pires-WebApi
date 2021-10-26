@@ -56,9 +56,7 @@ namespace DevIO.Api.Configuration
                      .WithOrigins("http://localhost:4200", "https://localhost:4200")
                      .SetIsOriginAllowedToAllowWildcardSubdomains()
                      //.WithHeaders(HeaderNames.ContentType, "x-custom-header")
-                     .AllowAnyHeader());
-                    
-
+                     .AllowAnyHeader()); 
             });
 
             //services.AddHealthChecksUI();

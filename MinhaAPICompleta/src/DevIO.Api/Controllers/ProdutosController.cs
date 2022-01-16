@@ -188,22 +188,25 @@ namespace DevIO.Api.Controllers
         {
             if (!ModelState.IsValid) return CustomResponse(ModelState);
 
+            // Salva o arquivo no diretorio
             var imgPrefixo = Guid.NewGuid() + "_";
             if (!await UploadArquivoAlternativo(produtoViewModel.ImagemUpload, imgPrefixo))
             {
                 return CustomResponse(ModelState);
             }
 
+            // Salva o objeto que tem o nome do arquivo.
             produtoViewModel.Imagem = imgPrefixo + produtoViewModel.ImagemUpload.FileName;
             await _produtoService.Adicionar(_mapper.Map<Produto>(produtoViewModel));
 
             return CustomResponse(produtoViewModel);
         }
 
+        //[DisableRequestSizeLimit]        
         //[DisableRequestSizeLimit]
         [RequestSizeLimit(40000000)]
         [HttpPost("imagem")]
-        public ActionResult AdicionarImagem(IFormFile file)
+        public async Task<ActionResult> AdicionarImagem(IFormFile file)
         {
             return Ok(file);
         }
@@ -211,20 +214,23 @@ namespace DevIO.Api.Controllers
         /// <summary> Cria imagens de arquivos pesados.</summary>        
         private async Task<bool> UploadArquivoAlternativo(IFormFile arquivo, string imgPrefixo)
         {
+            // Verifica se exite
             if (arquivo == null || arquivo.Length == 0)
             {
                 NotificarErro("Forneça uma imagem para este produto!");
                 return false;
-            }
+            }            
+            //false||false
 
             var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Angular/src/assets", imgPrefixo + arquivo.FileName);
 
+            // Verifica se já tem.
             if (System.IO.File.Exists(path))
             {
                 NotificarErro("Já existe um arquivo com este nome!");
                 return false;
             }
-
+            // Copiar para a maquina, cria no path
             using (var stream = new FileStream(path, FileMode.Create))
             {
                 await arquivo.CopyToAsync(stream);

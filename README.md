@@ -2,6 +2,13 @@
 
  - Projeto do Curso do AspNet Core com Eduardo Pires
 
+# Comandos atualizado(15-05-2022) 
+
+ - Comando para atualizar e gerar tabelas no banco de dados:
+
+ - update-database -Context MeuDbContext -Verbose
+
+ - update-database -Context ApplicationDbContext 
 
 # REST
 

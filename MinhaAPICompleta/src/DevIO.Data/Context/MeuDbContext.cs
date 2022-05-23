@@ -1,25 +1,33 @@
-﻿using DevIO.Business.Models;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using DevIO.Business.Models;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace DevIO.Data.Context
 {
     public class MeuDbContext : DbContext
     {
-        public DbSet<Produto> Produtos { get; set; }
+        public MeuDbContext()
+        {
 
-        public DbSet<Endereco> Enderecos { get; set; }
-
-        public DbSet<Fornecedor> Fornecedores { get; set; }
+        }
 
         public MeuDbContext(DbContextOptions<MeuDbContext> options) : base(options)
         {
             ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
             ChangeTracker.AutoDetectChangesEnabled = false;
         }
+
+        public DbSet<Produto> Produtos { get; set; }
+
+        public DbSet<Endereco> Enderecos { get; set; }
+
+        public DbSet<Fornecedor> Fornecedores { get; set; }
+
+       
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -37,8 +45,7 @@ namespace DevIO.Data.Context
             // Faz uma pesquisa de relações dentro do modelBuild, pegando o tipo das entidades.
             // selectMany cria uma lista, atraves das ForeignKeys, pega o comportamento a pós a exclusão (DeleteBehavior)
             // Passa o "ClientSetNull", 
-            foreach (var relationship in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
-                relationship.DeleteBehavior = DeleteBehavior.ClientSetNull;
+            foreach (var relationship in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))relationship.DeleteBehavior = DeleteBehavior.ClientSetNull;
 
             base.OnModelCreating(modelBuilder);
         }

@@ -1314,127 +1314,128 @@ faz isso antes mesmo da validar a modelstate.
 
 # Implementando o JWT
   
-   ### Arquivo AppSettings.cs
+### Arquivo AppSettings.cs
 
-     - Na pasta de extenção cria uma classe chamada "AppSettings.cs" 
-     - É uma classe para gerenciar propriedades do token 
-         - Secret: Chave de criptografia do token.
-         - ExpiracaoHoras: expirações em horas que o token vai perder a validade.
-         - Emissor: Quem emite (a aplicação).
-         - ValidoEm: Em quais URL esse token é valido.
+- Na pasta de extenção cria uma classe chamada "AppSettings.cs", É uma classe para gerenciar propriedades do token 
+    - Secret: Chave de criptografia do token.
+    - ExpiracaoHoras: expirações em horas que o token vai perder a validade.
+    - Emissor: Quem emite (a aplicação).
+    - ValidoEm: Em quais URL esse token é valido.
 
-   ### Arquivo appsettings.json
+### Arquivo appsettings.json
 
-     - Deve ser implementado essa classe no "appsettings.json" mesmo arquivo que fica a connectionString.
+- Deve ser implementado essa classe no "appsettings.json" mesmo arquivo que fica a connectionString.
 
-        <blockquete>        
-                  "AppSettings": {
-                    "Secret": "MEUSEGREDOSUPERSECRETO",
-                    "ExpiracaoHoras": 2,
-                    "Emissor": "MeuSistema",
-                    "ValidoEm": "https://localhost"
-                  }
-        </blockquete>
+    <blockquete>
 
-      - secret e emissor foi criado manualmente.
-      - o 2 em "ExpiracaoHoras" representa 2h de duração
-      - Emissor e ValidoEm, são as propriedades que vai ser usada para validar o token.
-      - Deve informar a url que você vai usar, para a propriedade ValidoEm.
+              "AppSettings": {
+                "Secret": "MEUSEGREDOSUPERSECRETO",
+                "ExpiracaoHoras": 2,
+                "Emissor": "MeuSistema",
+                "ValidoEm": "https://localhost"
+              }
 
-   ### Arquivo IdentityConfig.cs
+    </blockquete>
 
-      - Na configuração "IdentityConfig", deve configurar o JWT, apartir daqui toda configuração fica nesse classe.
+    - secret e emissor foi criado manualmente.
+    - o 2 em "ExpiracaoHoras" representa 2h de duração
+    - Emissor e ValidoEm, são as propriedades que vai ser usada para validar o token.
+    - Deve informar a url que você vai usar, para a propriedade ValidoEm.
 
-      - Configuração:
+### Arquivo IdentityConfig.cs
 
-        1° A variavel "appSettingsSection", recebe o valor, que vem do parametro, "configuration" que chama o método "GetSection()" é passado o valor de "AppSettings" para ele entender de qual sessão deve buscar o valor, no json.
+- Na configuração "IdentityConfig", deve configurar o JWT, apartir daqui toda configuração fica nesse classe.
 
-        2° Para os valores ja vim populados, deve configurar no aspNet Core, usando o parametro "services", chama o "configure", define o tipo dele
-        como "AppSettings" e passa como parametro a variavel "appSettingsSection".
+    - Configuração:
 
-        <blockquete>
-            var appSettingsSection = configuration.GetSection("AppSettings");
-            services.Configure<AppSettings>(appSettingsSection);
-        </blockquete>
+    1° A variavel "appSettingsSection", recebe o valor, que vem do parametro, "configuration" que chama o método "GetSection()" é passado o valor de "AppSettings" para ele entender de qual sessão deve buscar o valor, no json.
 
-      - Pegando valores configurado e criando uma chave.
+    2° Para os valores ja vim populados, deve configurar no aspNet Core, usando o parametro "services", chama o "configure", define o tipo dele
+    como "AppSettings" e passa como parametro a variavel "appSettingsSection".
 
-        1° Cria um variavel chamada "appSettings" que recebe o valor de "appSettingsSection.Get<AppSettings>()", variavel que acabou de configurar.
-         
-        2° Cria uma variavel que recebe, valor do "encoding", com base no "segredo".
+    <blockquete>
+        var appSettingsSection = configuration.GetSection("AppSettings");
+        services.Configure<AppSettings>(appSettingsSection);
+    </blockquete>
 
-        <blockquete>
-                var appSettings = appSettingsSection.Get<AppSettings>();
-                var key = Encoding.ASCII.GetBytes(appSettings.Secret);
-        </blockquete>
+- Pegando valores configurado e criando uma chave.
 
-      - Configurando o token do JWT (criando e configurando uma authenticação)
+    1° Cria um variavel chamada "appSettings" que recebe o valor de "appSettingsSection.Get<AppSettings>()", variavel que acabou de configurar.
+     
+    2° Cria uma variavel que recebe, valor do "encoding", com base no "segredo".
 
-        1° "services.AddAuthentication()": Adiciona a autenticação e configura.
+    <blockquete>
+            var appSettings = appSettingsSection.Get<AppSettings>();
+            var key = Encoding.ASCII.GetBytes(appSettings.Secret);
+    </blockquete>
 
-        2° DefaultAuthenticateScheme: define um padrão de validação, 
-         que é gerar um token.
+- Configurando o token do JWT (criando e configurando uma authenticação)
 
-        3° DefaultChallengeScheme: Toda vez que for validar, verifica o token.
+    1° "services.AddAuthentication()": Adiciona a autenticação e configura.
 
-        <blockquete>
+    2° DefaultAuthenticateScheme: define um padrão de validação, 
+     que é gerar um token.
 
-            services.AddAuthentication(x =>
-            {
-                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
+    3° DefaultChallengeScheme: Toda vez que for validar, verifica o token.
 
-        </blockquete>
+    <blockquete>
 
-        OBS: Para não da erro deve instalar a versão 3.0.0 do pacote.
+        services.AddAuthentication(x =>
+        {
+            x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
 
-        solução: https://qastack.com.br/programming/58593240/how-to-replace-addjwtbearer-extension-in-net-core-3-0
-      
-        <blockquete>
-            Install-Package Microsoft.AspNetCore.Authentication.JwtBearer -Version 3.0.0
-        </blockquete>
+    </blockquete>
 
-      - Adicionando configurações a mais com o método "AddJwtBearer()".
+    OBS: Para não da erro deve instalar a versão 3.0.0 do pacote.
 
-        1° RequireHttpsMetadata: se for trabalhar apenas com Https, pode deixar true, define que só vai trabalhar com https, para evitar ataques.
+    solução: https://qastack.com.br/programming/58593240/how-to-replace-addjwtbearer-extension-in-net-core-3-0
+  
+    <blockquete>
+        Install-Package Microsoft.AspNetCore.Authentication.JwtBearer -Version 3.0.0
+    </blockquete>
 
-        2° SaveToken: Pergunta se o token deve ser guardado no "AuthenticationProperties", depois de uma autenticação de sucesso, É bom que quarde porq fica mais facil da aplicação validar, app apresentação do token.
+- Adicionando configurações a mais com o método "AddJwtBearer()".
 
-        3° Outras configurações (criando o token), "TokenValidationParameters" cria uma serie de outros parametros!
+    1° RequireHttpsMetadata: se for trabalhar apenas com Https, pode deixar true, define que só vai trabalhar com https, para evitar ataques.
 
-          - ValidateIssuerSigningKey: Valida se quem esta emitindo é o mesmo que está no token.(baseada nome do Issuer e na chave).
-          - IssuerSigningKey: configura a chave, transforma de asp2 para uma chave criptografada.
-          - ValidateIssuer: valida apenas o Ussuer conforme o nome.
-          - ValidateAudience: aonde o token é valido em qual Audience.
-          - ValidAudience: Informa qual é o "Audience".
-          - ValidIssuer: Informa qual é o "Essuer".
+    2° SaveToken: Pergunta se o token deve ser guardado no "AuthenticationProperties", depois de uma autenticação de sucesso, É bom que quarde porq fica mais facil da aplicação validar, app apresentação do token.
 
-        Configuração completa:
+    3° Outras configurações (criando o token), "TokenValidationParameters" cria uma serie de outros parametros!
 
-        <blockquete>
-                    services.AddAuthentication(x =>
+        - ValidateIssuerSigningKey: Valida se quem esta emitindo é o mesmo que está no token.(baseada nome do Issuer e na chave).
+        - IssuerSigningKey: configura a chave, transforma de asp2 para uma chave criptografada.
+        - ValidateIssuer: valida apenas o Ussuer conforme o nome.
+        - ValidateAudience: aonde o token é valido em qual Audience.
+        - ValidAudience: Informa qual é o "Audience".
+        - ValidIssuer: Informa qual é o "Essuer".
+
+    Configuração completa:
+
+    <blockquete>
+                services.AddAuthentication(x =>
+                {
+                    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+
+                }).AddJwtBearer(x =>
+                {
+                    x.RequireHttpsMetadata = true;
+                    x.SaveToken = true;
+                    x.TokenValidationParameters = new TokenValidationParameters
                     {
-                        x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                        x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidAudience = appSettings.ValidoEm,
+                        ValidIssuer = appSettings.Emissor
+                    };
+                });
+    </blockquete>
 
-                    }).AddJwtBearer(x =>
-                    {
-                        x.RequireHttpsMetadata = true;
-                        x.SaveToken = true;
-                        x.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            ValidateIssuerSigningKey = true,
-                            IssuerSigningKey = new SymmetricSecurityKey(key),
-                            ValidateIssuer = true,
-                            ValidateAudience = true,
-                            ValidAudience = appSettings.ValidoEm,
-                            ValidIssuer = appSettings.Emissor
-                        };
-                    });
-        </blockquete>
-
-   ### Arquivo AuthController
+### Arquivo AuthController
 
         - Configurando o controller auth (Devolvendo o token que foi gerado)
 

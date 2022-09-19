@@ -1082,62 +1082,68 @@ faz isso antes mesmo da validar a modelstate.
 # Autenticação
 
  - Tratando da segurança da API.
- - Bota o atributo "Authorize" nas controllers.
+ - Bota o atributo "Authorize" nas controllers, informa o uso do filtro, obriga a apresentar um login.
  - Bota o atributo "[AllowAnonymous]" nas actions que vc esta liberando para todas as pessoas.
 
 # Implementando o ASP.NET Identity
 
-### 1° passo 
+ - Precisa da implementação do Identity, para o atributo Authorize funcionar.
 
- - Cria um classe chamada "IdentityConfig.cs". para isolar a confgiração do Identity
- - Chama a classe isolada no startUp.
+ ### 1° passo 
+
+ - Cria um classe "static" chamada "IdentityConfig.cs". para isolar a confgiração do Identity
+ - implementa um método de extensão, que implementa o IServiceCollection.
+ - O parametro 'configuration' é do microsft extention e não do automaper.
+
+ - No arquivo "Startup", chama a classe isolada que nos criamos "IdentityConfig".
  - Paasa a "configuration" por parametro, que é a configuração da conectionString.
 
-<blockquete>
+ <blockquete>
             services.AddIdentityConfig(Configuration);
-</blockquete>
+ </blockquete>
 
- - Cria um outro dbcontext chamado "ApplicationDbContext", 
-  dentro de uma pasta chamada data que deve ser criada.
- - Configurao o ApplicationDbContext.
+ - Cria um outro dbcontext chamado "ApplicationDbContext", dentro de uma pasta chamada 'data' que deve ser criada.
 
-<blockquete>
+ - Configurao o ApplicationDbContext, herdando a classe 'IdentityDbContext' e no construtor passa os paremetros.
+
+ <blockquete>
 
             public class ApplicationDbContext : IdentityDbContext
             {
                 public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
             }
 
-</blockquete>
+ </blockquete>
 
  - Copia e cola a configuração do "AddDbContext" que esta na startUp para a o método "AddIdentityConfig",
  que esta na classe "IdentityConfig", usando o contexto "ApplicationDbContext".
 
  - executa o comando para gerar a migration.
-
  
-<blockquete>
+ <blockquete>
 
             add-migration Identity -Context ApplicationDbContext 
 
-</blockquete>
+ </blockquete>
 
  - Executa o comando que gera as tabelas.
 
-<blockquete>
+ <blockquete>
 
             update-database -Context ApplicationDbContext 
 
-</blockquete>
+ </blockquete>
 
-### 2° passo 
+ ### 2° passo 
+
+ - Na classe 'IdentityConfig' configura o idadentity, inciando com o '.AddDefaultIdentity<IdentityUser>()'.
 
  - Configurando  a model do Identity.
  - "AddRoles<IdentityRole>()" determina uma classe com regras, foi passada a padrão.
  - "AddEntityFrameworkStores<ApplicationDbContext>()" informa que esta trabalhando com entityframework.
  - "AddDefaultTokenProviders" gerador de token para resetar senha e confirmar email.
-
-<blockquete>
+ - 
+ <blockquete>
 
            services.AddDefaultIdentity<IdentityUser>()
                 .AddRoles<IdentityRole>()
@@ -1145,9 +1151,13 @@ faz isso antes mesmo da validar a modelstate.
                 .AddDefaultTokenProviders();
                 //.AddErrorDescriber<IdentityMensagensPortugues>()
 
-</blockquete>
+ </blockquete>
  
  - No método "UseApiConfig" que fica na classe "ApiConfig" bota a coonfiguração "app.UseAuthentication();".
+
+ - Caso a classe não foi isolada, vai no metodo 'Configure' da classe 'startUp' e coleque o 'app.UseAuthentication();'.
+
+ - Para a autenticação funcionar, a chamada do 'app.UseAuthentication();' sempre vai vim antes da chamada do 'useMvc...'
 
 # Controller de Autenticação
  
@@ -1161,7 +1171,7 @@ faz isso antes mesmo da validar a modelstate.
  - Cria o controller chamado "AuthController", herda a classe "MainController", ele é responsavel por
  fazer login e resgistro de usuarios.
 
-### Registrar
+ ### Registrar
 
  - Cria o método "Registrar", que recebe um "RegisterUserViewModel" como parametro.
 
@@ -1171,13 +1181,23 @@ faz isso antes mesmo da validar a modelstate.
 
  - Verifica se a ModelState é valida.
  - Cria um objto IdentityUser.
+
  - Usando o _userManager, chama o método ".CreateAsync(user, registerUser.Password);",
  passando o usuario e senha, passando o resultado para uma variavel.
- - Usando a propriedade "Succeeded", verifica se foi criado corretamente.
- - Se teve sucesso, então usa o "_signInManager" para chamar o método ".SignInAsync(user, false);",
- o false é para informar se deve ser salvo as informações no proximo login.
+ - Passa o 'Password' como segundo parametro porq ele salva o rash, e não salva a senha.
+ - Retorna um IdentityResult.
 
-<blockquete>
+ - Usando a propriedade "Succeeded", verifica se foi criado corretamente.
+ - Se teve sucesso, então usa o "signInManager" para chamar o método '.SignInAsync(user, false)'.
+
+ - o false é para não memorizar o login.
+
+ - retorna erro caso tenha.
+ - retorna http 200 caso de tudo certo.
+
+ 
+
+    <blockquete>
 
             [HttpPost("nova-conta")]
             public async Task<ActionResult> Registrar(RegisterUserViewModel registerUser)
@@ -1206,22 +1226,20 @@ faz isso antes mesmo da validar a modelstate.
                 return CustomResponse(registerUser);
             }
 
-</blockquete>
+    </blockquete>
 
-### Login
+ ### Login
 
- - Criando a action de logar, recebe como parametro um objeto "LoginUserViewModel".
+ - Criando a Task< ActionResult> de logar, recebe como parametro um objeto "LoginUserViewModel".
 
  - Verifica se a modelState é valida.
- - Usa o "_signInManager" para chamada o método 
- "PasswordSignInAsync(loginUser.Email, loginUser.Password, false, true);", ele recebe o usuario, senha e
- dois bool, o primeiro é para informar se é persistence, e o segundo vai travar o usuario para tentativas
- invalidas depois de x minutos.
+ - Usa o "_signInManager" para chamada o método "PasswordSignInAsync(loginUser.Email, loginUser.Password, false, true);".
+ - Ele recebe o usuario, senha e dois bool, o primeiro é para informar se é persistence, e o segundo vai travar o usuario para tentativas invalidas depois de x minutos.
 
- - Caso consiga logar com sucesso cria documenta no logger. 
+ - Caso consiga logar com sucesso, retorna o 'CustomResponse()',  cria documenta no logger. 
  - Se não conseguiu logar trata o erro com "CustomResponse".
   
-<blockquete>
+ <blockquete>
 
             [HttpPost("entrar")]
             public async Task<ActionResult> Login(LoginUserViewModel loginUser)
@@ -1246,8 +1264,8 @@ faz isso antes mesmo da validar a modelstate.
                 return CustomResponse(loginUser);
             }
 
-</blockquete>
-
+ </blockquete>
+ 
 # Customizando os erros do Identity
 
  - Botando as mensagem do identity em português.
@@ -1276,237 +1294,232 @@ faz isso antes mesmo da validar a modelstate.
  - A api responde com o que foi solicitado.
 
  - Site que explica o que é um JWT: https://jwt.io/
+
+ - Token
+ - A parte vermelha é o header do token, informa incriptação e o tipo.
+ - A parte roxa é o dado do token.
+ - A parte azul é a assinatura do token.
   
  - O lado do client sempre guarda o Token.
 
-### cores que representa um JWT
+ ### cores que representa um JWT
 
-  - Vermelho: forma de criptação, e a forma que ele é,
+ - Vermelho: forma de criptação, e a forma que ele é,
      diz o tipo de criptografia.
 
-  - Roxa: é o dado, o Json.
+ - Roxa: é o dado, o Json.
 
-  - Azul: É a assinatura, informa a chave de criptografia, a chave fica na aplicação,
+ - Azul: É a assinatura, informa a chave de criptografia, a chave fica na aplicação,
   para descriptografar e criptografar.
 
 # Implementando o JWT
-
-  - Na pasta de extenção cria uma classe chamada "AppSettings.cs" 
-  - É uma classe para gerenciar propriedades do token 
-     - Secret: Chave de criptografia do token.
-     - ExpiracaoHoras: expirações em horas que o token vai perder a validade.
-     - Emissor: Quem emite (a aplicação).
-     - ValidoEm: Em quais URL esse token é valido.
-
-  - Deve ser implementado essa classe no "appsettings.json" mesmo arquivo que fica a connectionString.
   
+   ### Arquivo AppSettings.cs
 
-<blockquete>
-        
-              "AppSettings": {
-                "Secret": "MEUSEGREDOSUPERSECRETO",
-                "ExpiracaoHoras": 2,
-                "Emissor": "MeuSistema",
-                "ValidoEm": "https://localhost"
-              }
+     - Na pasta de extenção cria uma classe chamada "AppSettings.cs" 
+     - É uma classe para gerenciar propriedades do token 
+         - Secret: Chave de criptografia do token.
+         - ExpiracaoHoras: expirações em horas que o token vai perder a validade.
+         - Emissor: Quem emite (a aplicação).
+         - ValidoEm: Em quais URL esse token é valido.
 
-</blockquete>
+   ### Arquivo appsettings.json
 
- - secret e emissor foi criado manualmente.
- - o 2 em "ExpiracaoHoras" representa 2h de duração
- - Emissor e ValidoEm, são as propriedades que vai ser usada para validar o token.
- - Deve informar a url que você vai usar, para a propriedade ValidoEm.
+     - Deve ser implementado essa classe no "appsettings.json" mesmo arquivo que fica a connectionString.
 
- - Na configuração "IdentityConfig", deve configurar o JWT, apartir daqui toda configuração fica nesse classe.
- - Congifura a classe com o json, já está populando a classe.
-    - .GetSection(): pega a sessão do json appsettings, e guarda em uma variavel.
-    - .Configure(): cria um vinculo do json e a classe no asp.net core.
- - Quando injetar a classe "AppSettings" ela já vai vim com os dados populados.
+        <blockquete>        
+                  "AppSettings": {
+                    "Secret": "MEUSEGREDOSUPERSECRETO",
+                    "ExpiracaoHoras": 2,
+                    "Emissor": "MeuSistema",
+                    "ValidoEm": "https://localhost"
+                  }
+        </blockquete>
 
-<blockquete>
+      - secret e emissor foi criado manualmente.
+      - o 2 em "ExpiracaoHoras" representa 2h de duração
+      - Emissor e ValidoEm, são as propriedades que vai ser usada para validar o token.
+      - Deve informar a url que você vai usar, para a propriedade ValidoEm.
 
+   ### Arquivo IdentityConfig.cs
+
+      - Na configuração "IdentityConfig", deve configurar o JWT, apartir daqui toda configuração fica nesse classe.
+
+      - Configuração:
+
+        1° A variavel "appSettingsSection", recebe o valor, que vem do parametro, "configuration" que chama o método "GetSection()" é passado o valor de "AppSettings" para ele entender de qual sessão deve buscar o valor, no json.
+
+        2° Para os valores ja vim populados, deve configurar no aspNet Core, usando o parametro "services", chama o "configure", define o tipo dele
+        como "AppSettings" e passa como parametro a variavel "appSettingsSection".
+
+        <blockquete>
             var appSettingsSection = configuration.GetSection("AppSettings");
             services.Configure<AppSettings>(appSettingsSection);
+        </blockquete>
 
-</blockquete>
+      - Pegando valores configurado e criando uma chave.
 
-- Pegando os dados da classe "AppSettings" que acabou de ser configurada, 
-usando o método "appSettingsSection.Get<AppSettings>()".
-- Definindo a chave "key" baseado no segredo, fazendo Encoding.
-- Usa a chave que é uma coleçã ode bites, para criptografar os dados do token.
+        1° Cria um variavel chamada "appSettings" que recebe o valor de "appSettingsSection.Get<AppSettings>()", variavel que acabou de configurar.
+         
+        2° Cria uma variavel que recebe, valor do "encoding", com base no "segredo".
 
-<blockquete>
+        <blockquete>
+                var appSettings = appSettingsSection.Get<AppSettings>();
+                var key = Encoding.ASCII.GetBytes(appSettings.Secret);
+        </blockquete>
 
-            var appSettings = appSettingsSection.Get<AppSettings>();
-            var key = Encoding.ASCII.GetBytes(appSettings.Secret);
+      - Configurando o token do JWT (criando e configurando uma authenticação)
 
-</blockquete>
+        1° "services.AddAuthentication()": Adiciona a autenticação e configura.
 
-### Configurando o token do JWT (criando e configurando uma authenticação)
+        2° DefaultAuthenticateScheme: define um padrão de validação, 
+         que é gerar um token.
 
- - "services.AddAuthentication()": Adiciona a autenticação e configura.
+        3° DefaultChallengeScheme: Toda vez que for validar, verifica o token.
 
- - DefaultAuthenticateScheme: define um padrão de validação, 
- que é gerar um token.
-
- - DefaultChallengeScheme: Toda vez que for validar, verifica o token.
-
- - Para não da erro deve instalar a versão 3.0.0 do pacote.
-
- - solução: https://qastack.com.br/programming/58593240/how-to-replace-addjwtbearer-extension-in-net-core-3-0
-  
-<blockquete>
-
-            Install-Package Microsoft.AspNetCore.Authentication.JwtBearer -Version 3.0.0
-
-</blockquete>
-
- - O método "AddJwtBearer()" adiciona mais configurações.
-
-  - RequireHttpsMetadata: se for trabalhar apenas com Https, 
-  pode deixar true, define que só vai trabalhar com https, para evitar ataques.
-
-  - SaveToken: Pergunta se o token deve ser guardado no 
-  "AuthenticationProperties", depois de uma autenticação de sucesso.
-
-  - É bom que quarde porq fica mais facil da aplicação validar,
-  app apresentação do token.
-
-### outras configurações (criando o token)
- - TokenValidationParameters: Cria uma serie de outros parametros:
-
-  - ValidateIssuerSigningKey: Valida se quem esta emitindo é o mesmo que está no token.(baseada nome do Issuer e na chave).
-  - IssuerSigningKey: configura a chave, transforma de asp2 para uma chave criptografada.
-  - ValidateIssuer: valida apenas o Ussuer conforme o nome.
-  - ValidateAudience: aonde o token é valido em qual Audience.
-  - ValidAudience: Informa qual é o "Audience"
-  - ValidIssuer: Informa qual é o "Essuer"
-
-
- - Configuração completa
-
-<blockquete>
+        <blockquete>
 
             services.AddAuthentication(x =>
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
 
-            }).AddJwtBearer(x =>
-            {
-                x.RequireHttpsMetadata = true;
-                x.SaveToken = true;
-                x.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidAudience = appSettings.ValidoEm,
-                    ValidIssuer = appSettings.Emissor
-                };
-            });
+        </blockquete>
 
-</blockquete>
+        OBS: Para não da erro deve instalar a versão 3.0.0 do pacote.
 
-### Configurando o controller auth (Devolvendo o token que foi gerado)
+        solução: https://qastack.com.br/programming/58593240/how-to-replace-addjwtbearer-extension-in-net-core-3-0
+      
+        <blockquete>
+            Install-Package Microsoft.AspNetCore.Authentication.JwtBearer -Version 3.0.0
+        </blockquete>
 
- - O cadastro tendo sucesso, deve gerar o token e devolver para o client,
- isso na action de registro.
-  
-<blockquete>
+      - Adicionando configurações a mais com o método "AddJwtBearer()".
 
-            if (result.Succeeded)
-            {
-                await _signInManager.SignInAsync(user, false);               
+        1° RequireHttpsMetadata: se for trabalhar apenas com Https, pode deixar true, define que só vai trabalhar com https, para evitar ataques.
 
-                // Gerando o token e devolve ele !
-                return CustomResponse(await GerarJwt(user.Email));
-            }
+        2° SaveToken: Pergunta se o token deve ser guardado no "AuthenticationProperties", depois de uma autenticação de sucesso, É bom que quarde porq fica mais facil da aplicação validar, app apresentação do token.
 
-</blockquete>
+        3° Outras configurações (criando o token), "TokenValidationParameters" cria uma serie de outros parametros!
 
-### Injetando classe com "IOptions".
+          - ValidateIssuerSigningKey: Valida se quem esta emitindo é o mesmo que está no token.(baseada nome do Issuer e na chave).
+          - IssuerSigningKey: configura a chave, transforma de asp2 para uma chave criptografada.
+          - ValidateIssuer: valida apenas o Ussuer conforme o nome.
+          - ValidateAudience: aonde o token é valido em qual Audience.
+          - ValidAudience: Informa qual é o "Audience".
+          - ValidIssuer: Informa qual é o "Essuer".
 
- - Injeta a classe "AppSettings" usando o "IOptions".
-   - Cria a propriedade "private readonly AppSettings _appSettings;"
-   - No paramtro passa o "IOptions<AppSettings> appSettings,"
-   - Dentro do construtor alimenta a propriedade " _appSettings = appSettings.Value;"
+        Configuração completa:
 
-### Criando o método que gera o token e devolve pro client.
+        <blockquete>
+                    services.AddAuthentication(x =>
+                    {
+                        x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                        x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 
- - Cria um método com nome de "GerarJwt", dentro no método aplica os comandos.
- 
- - instancia a classe "JwtSecurityTokenHandler" e guarda na variavel TokenHandler.
- 
-<blockquete>
+                    }).AddJwtBearer(x =>
+                    {
+                        x.RequireHttpsMetadata = true;
+                        x.SaveToken = true;
+                        x.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuerSigningKey = true,
+                            IssuerSigningKey = new SymmetricSecurityKey(key),
+                            ValidateIssuer = true,
+                            ValidateAudience = true,
+                            ValidAudience = appSettings.ValidoEm,
+                            ValidIssuer = appSettings.Emissor
+                        };
+                    });
+        </blockquete>
 
-            var tokenHandler = new JwtSecurityTokenHandler();
+   ### Arquivo AuthController
 
-</blockquete>
+        - Configurando o controller auth (Devolvendo o token que foi gerado)
 
- - Antes de criar a chave de criptografia, devemos receber o appSettings,
- injetado no controlador.
+             - O cadastro tendo sucesso, deve gerar o token e devolver para o client,
+             isso na action de registro.
 
- - Essa injeção de dependencia é feita de uma forma diferente, é usando o "IOptions",
- esse "IOptions" é usado para pegar dados usado de parametros.
+            <blockquete>
+                        if (result.Succeeded)
+                        {
+                            await _signInManager.SignInAsync(user, false);               
 
- - Por isso que no construtor é possivel passar o valor do objeto.
+                            // Gerando o token e devolve ele !
+                            return CustomResponse(await GerarJwt(user.Email));
+                        }
+            </blockquete>
 
-<blockquete>
+        - Injetando classe com "IOptions".
 
-        _appSettings = appSettings.Value;
+         - Injeta a classe "AppSettings" usando o "IOptions".
+           - Cria a propriedade "private readonly AppSettings _appSettings;"
+           - No paramtro passa o "IOptions<AppSettings> appSettings,"
+           - Dentro do construtor alimenta a propriedade " _appSettings = appSettings.Value;"
 
-</blockquete
+        - Criando o método que gera o token e devolve pro client.
 
- - Cria a chave de criptografia: 
-  
-<blockquete>
-
-          var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
-
-</blockquete>
-
- - Gerando um token, Nessa etapa você está alimentando a configuração 
- do token, e criando ele.
-
-    - Issuer: indica o emissor que está no "_appSettings";
-
-    - Audience: informa o ValidoEm, que está no "_appSettings";
-
-    - Expires: a expiração, quanto tempo vai ser valido, é 
-    usado o " DateTime.UtcNow.AddHours" para usar a hora da local.
-
-    - SigningCredentials: cria uma instancia de "SigningCredentials()" e ,
-    Passando como parametro uma instancia de "SymmetricSecurityKey" nessa instancia é 
-    passado o "key" como parametro. o segundo parameto é "SecurityAlgorithms.HmacSha256Signature"
-
-    - SecurityAlgorithms.HmacSha256Signature: é um algoritimo de criptografia que vai ser usado.
-
-<blockquete>
-
-            var token = tokenHandler.CreateToken(new SecurityTokenDescriptor
-            {
-                Issuer = _appSettings.Emissor,
-                Audience = _appSettings.ValidoEm,
-                Subject = identityClaims,
-                Expires = DateTime.UtcNow.AddHours(_appSettings.ExpiracaoHoras),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            });
+         - Cria um método com nome de "GerarJwt", dentro no método aplica os comandos.
          
-
-</blockquete>
-
- - Escreva o token, cria uma variavel chamada "encodedToken", chama o método "tokenHandler.WriteToken()",
- que recebe o "token" que foi configurado.
- 
- Esse método deixando o token com padrão da web.
-
-<blockquete>
+         - instancia a classe "JwtSecurityTokenHandler" e guarda na variavel TokenHandler.
          
-            var encodedToken = tokenHandler.WriteToken(token);
+            <blockquete>
+                    var tokenHandler = new JwtSecurityTokenHandler();
+            </blockquete>
 
-</blockquete>
+         - Antes de criar a chave de criptografia, devemos receber o appSettings,
+         injetado no controlador.
+
+         - Essa injeção de dependencia é feita de uma forma diferente, é usando o "IOptions",
+         esse "IOptions" é usado para pegar dados usado de parametros.
+
+         - Por isso que no construtor é possivel passar o valor do objeto.
+
+        <blockquete>
+                _appSettings = appSettings.Value;
+        </blockquete
+
+         - Cria a chave de criptografia: 
+          
+            <blockquete>
+                    var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
+            </blockquete>
+
+         - Gerando um token, Nessa etapa você está alimentando a configuração 
+         do token, e criando ele.
+
+            - Issuer: indica o emissor que está no "_appSettings";
+
+            - Audience: informa o ValidoEm, que está no "_appSettings";
+
+            - Expires: a expiração, quanto tempo vai ser valido, é 
+            usado o " DateTime.UtcNow.AddHours" para usar a hora da local.
+
+            - SigningCredentials: cria uma instancia de "SigningCredentials()" e ,
+            Passando como parametro uma instancia de "SymmetricSecurityKey" nessa instancia é 
+            passado o "key" como parametro. o segundo parameto é "SecurityAlgorithms.HmacSha256Signature"
+
+        - SecurityAlgorithms.HmacSha256Signature: é um algoritimo de criptografia que vai ser usado.
+
+            <blockquete>
+                    var token = tokenHandler.CreateToken(new SecurityTokenDescriptor
+                    {
+                        Issuer = _appSettings.Emissor,
+                        Audience = _appSettings.ValidoEm,
+                        Subject = identityClaims,
+                        Expires = DateTime.UtcNow.AddHours(_appSettings.ExpiracaoHoras),
+                        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                    });
+            </blockquete>
+
+         - Escreva o token, cria uma variavel chamada "encodedToken", chama o método "tokenHandler.WriteToken()",
+         que recebe o "token" que foi configurado.         
+         - Esse método deixando o token com padrão da web.
+
+            <blockquete>                 
+                    var encodedToken = tokenHandler.WriteToken(token);
+            </blockquete>
 
 # Autorização baseada em Claims via JWT (botando as claims no token[JWT])
 

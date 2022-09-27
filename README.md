@@ -1456,12 +1456,12 @@ faz isso antes mesmo da validar a modelstate.
 
     1° Caracteristicas do Método GerarJwt().
 
-        - Ele é privado e async, devolve um Task<string>, recebe um email do usuario.
-        - Gera um token para aquele email.
+    - Ele é privado e async, devolve um Task<string>, recebe um email do usuario.
+    - Gera um token para aquele email.
 
     2° Cria uma instancia do método "JwtSecurityTokenHandler".
 
-        - instancia a classe "JwtSecurityTokenHandler" e guarda na variavel "TokenHandler".
+    - instancia a classe "JwtSecurityTokenHandler" e guarda na variavel "TokenHandler".
 
     <blockquete>
 

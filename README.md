@@ -1437,90 +1437,99 @@ faz isso antes mesmo da validar a modelstate.
 
 ### Arquivo AuthController
 
-        - Configurando o controller auth (Devolvendo o token que foi gerado)
+- Chamando o GerarJwt(), método privado
 
-             - O cadastro tendo sucesso, deve gerar o token e devolver para o client,
-             isso na action de registro.
+    - O cadastro tendo sucesso, deve gerar o token e devolver para o client, isso na action de registro.
+    - É chamado o métod tanto para o "Criar" como para "Registrar".
+    - A chamada do "GerarJwt": 
 
-            <blockquete>
-                        if (result.Succeeded)
-                        {
-                            await _signInManager.SignInAsync(user, false);               
+    <blockquete>
 
-                            // Gerando o token e devolve ele !
-                            return CustomResponse(await GerarJwt(user.Email));
-                        }
-            </blockquete>
+        if (result.Succeeded)
+        {      
+            await _signInManager.SignInAsync(user, false);
+            // Gerando o token e devolve ele !
+            return CustomResponse(await GerarJwt(user.Email)); 
+        } 
 
-        - Injetando classe com "IOptions".
+    </blockquete>
 
-         - Injeta a classe "AppSettings" usando o "IOptions".
-           - Cria a propriedade "private readonly AppSettings _appSettings;"
-           - No paramtro passa o "IOptions<AppSettings> appSettings,"
-           - Dentro do construtor alimenta a propriedade " _appSettings = appSettings.Value;"
+- Criando o método GerarJwt(), ele devolve o token que foi gerado!
 
-        - Criando o método que gera o token e devolve pro client.
+    1° Caracteristicas do Método GerarJwt().
 
-         - Cria um método com nome de "GerarJwt", dentro no método aplica os comandos.
-         
-         - instancia a classe "JwtSecurityTokenHandler" e guarda na variavel TokenHandler.
-         
-            <blockquete>
-                    var tokenHandler = new JwtSecurityTokenHandler();
-            </blockquete>
+        - Ele é privado e async, devolve um Task<string>, recebe um email do usuario.
+        - Gera um token para aquele email.
 
-         - Antes de criar a chave de criptografia, devemos receber o appSettings,
-         injetado no controlador.
+    2° Cria uma instancia do método "JwtSecurityTokenHandler".
 
-         - Essa injeção de dependencia é feita de uma forma diferente, é usando o "IOptions",
-         esse "IOptions" é usado para pegar dados usado de parametros.
+        - instancia a classe "JwtSecurityTokenHandler" e guarda na variavel "TokenHandler".
 
-         - Por isso que no construtor é possivel passar o valor do objeto.
+    <blockquete>
+        var tokenHandler = new JwtSecurityTokenHandler();
+    </blockquete>
 
-        <blockquete>
-                _appSettings = appSettings.Value;
-        </blockquete
+    3° Injetando o "_ appSettings" no construtor.
+        (tem um espaço entre o " _ " para não da erro na documentação)
 
-         - Cria a chave de criptografia: 
-          
-            <blockquete>
-                    var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
-            </blockquete>
+        - Essa injeção tem uma forma diferente, ela usa a interface "IOptions"
 
-         - Gerando um token, Nessa etapa você está alimentando a configuração 
-         do token, e criando ele.
+        - Cria a propriedade "private readonly AppSettings _ appSettings;"
+        - Cria um novo parametro para o construtor chamado: "IOptions<AppSettings> appSettings,"
+        - Dentro do construtor alimenta a propriedade "_ appSettings = appSettings.Value;"
 
-            - Issuer: indica o emissor que está no "_appSettings";
+    4° Cria a chave de criptografia.
 
-            - Audience: informa o ValidoEm, que está no "_appSettings";
+        - Cria uma variavel chamada "Key", para ela receber a chave de criptografia.
+        - o metodo "Encoding.ASCII.GetBytes", recebe uma string.
 
-            - Expires: a expiração, quanto tempo vai ser valido, é 
-            usado o " DateTime.UtcNow.AddHours" para usar a hora da local.
+    <blockquete>
+        var key = Encoding.ASCII.GetBytes( _ appSettings.Secret);
+    </blockquete>
 
-            - SigningCredentials: cria uma instancia de "SigningCredentials()" e ,
-            Passando como parametro uma instancia de "SymmetricSecurityKey" nessa instancia é 
-            passado o "key" como parametro. o segundo parameto é "SecurityAlgorithms.HmacSha256Signature"
+    5° Gerando o Token.
 
-        - SecurityAlgorithms.HmacSha256Signature: é um algoritimo de criptografia que vai ser usado.
+        - A: configuração: chama o método "tokenHandler.CreateToken" 
+        e instancia a classe "new SecurityTokenDescriptor"
 
-            <blockquete>
-                    var token = tokenHandler.CreateToken(new SecurityTokenDescriptor
-                    {
-                        Issuer = _appSettings.Emissor,
-                        Audience = _appSettings.ValidoEm,
-                        Subject = identityClaims,
-                        Expires = DateTime.UtcNow.AddHours(_appSettings.ExpiracaoHoras),
-                        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-                    });
-            </blockquete>
+        - B: configuração: dentro dessa instancia passa toda as coordenadas dentro do token. 
 
-         - Escreva o token, cria uma variavel chamada "encodedToken", chama o método "tokenHandler.WriteToken()",
-         que recebe o "token" que foi configurado.         
-         - Esse método deixando o token com padrão da web.
+            - Issuer: indica o Emissor que está no "_ appSettings.Emissor";
 
-            <blockquete>                 
-                    var encodedToken = tokenHandler.WriteToken(token);
-            </blockquete>
+            - Audience: informa o ValidoEm, que está no "_ appSettings.ValidoEm";
+
+            - Expires: Converta o "_ appSettings.ExpiracaoHoras"  usando o
+             "DateTime.UtcNow.AddHours" para usar a hora da local.
+
+            - SigningCredentials: cria uma instancia de "new SigningCredentials()" e ,
+            Passando como parametro uma instancia de "new SymmetricSecurityKey" nessa instancia é 
+            passado o "key" como parametro, o segundo parameto é "SecurityAlgorithms.HmacSha256Signature".
+
+            SecurityAlgorithms.HmacSha256Signature: é um algoritimo de criptografia que vai ser usado.
+
+    <blockquete>
+            var token = tokenHandler.CreateToken(new SecurityTokenDescriptor
+            {
+                Issuer = _ appSettings.Emissor,
+                Audience = _ appSettings.ValidoEm,
+                Subject = identityClaims,
+                Expires = DateTime.UtcNow.AddHours(_ appSettings.ExpiracaoHoras),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            });
+    </blockquete>
+
+    6° Escrever o token.
+
+        - Cria uma variavel chamada "encodedToken", que recebe o método "tokenHandler.WriteToken()",
+         que recebe a variavel "token" que foi configurado como parametro.      
+
+        - Esse método deixando o token com padrão da web.
+
+        - Retorna a variavel "encodedToken"!
+
+    <blockquete>                
+            var encodedToken = tokenHandler.WriteToken(token);
+    </blockquete>
 
 # Autorização baseada em Claims via JWT (botando as claims no token[JWT])
 

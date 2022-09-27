@@ -1496,18 +1496,18 @@ faz isso antes mesmo da validar a modelstate.
 
     - B: configuração: dentro dessa instancia passa toda as coordenadas dentro do token. 
 
-    - Issuer: indica o Emissor que está no "_ appSettings.Emissor";
+        - Issuer: indica o Emissor que está no "_ appSettings.Emissor";
 
-    - Audience: informa o ValidoEm, que está no "_ appSettings.ValidoEm";
+        - Audience: informa o ValidoEm, que está no "_ appSettings.ValidoEm";
 
-    - Expires: Converta o "_ appSettings.ExpiracaoHoras"  usando o
-     "DateTime.UtcNow.AddHours" para usar a hora da local.
+        - Expires: Converta o "_ appSettings.ExpiracaoHoras"  usando o
+         "DateTime.UtcNow.AddHours" para usar a hora da local.
 
-    - SigningCredentials: cria uma instancia de "new SigningCredentials()" e ,
-    Passando como parametro uma instancia de "new SymmetricSecurityKey" nessa instancia é 
-    passado o "key" como parametro, o segundo parameto é "SecurityAlgorithms.HmacSha256Signature".
+        - SigningCredentials: cria uma instancia de "new SigningCredentials()" e ,
+        Passando como parametro uma instancia de "new SymmetricSecurityKey" nessa instancia é 
+        passado o "key" como parametro, o segundo parameto é "SecurityAlgorithms.HmacSha256Signature".
 
-    - SecurityAlgorithms.HmacSha256Signature: é um algoritimo de criptografia que vai ser usado.
+        - SecurityAlgorithms.HmacSha256Signature: é um algoritimo de criptografia que vai ser usado.
 
     <blockquete>
 

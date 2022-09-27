@@ -1051,7 +1051,6 @@ faz isso antes mesmo da validar a modelstate.
                     NotificarErro("Forneça uma imagem para este produto!");
                     return false;
                 }
-
                 var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Angular/src/assets", imgPrefixo + arquivo.FileName);
 
                 if (System.IO.File.Exists(path))
@@ -1059,12 +1058,10 @@ faz isso antes mesmo da validar a modelstate.
                     NotificarErro("Já existe um arquivo com este nome!");
                     return false;
                 }
-
                 using (var stream = new FileStream(path, FileMode.Create))
                 {
                     await arquivo.CopyToAsync(stream);
                 }
-
                 return true;
             }
 
@@ -1089,7 +1086,7 @@ faz isso antes mesmo da validar a modelstate.
 
  - Precisa da implementação do Identity, para o atributo Authorize funcionar.
 
- ### 1° passo 
+### 1° passo 
 
  - Cria um classe "static" chamada "IdentityConfig.cs". para isolar a confgiração do Identity
  - implementa um método de extensão, que implementa o IServiceCollection.
@@ -1134,7 +1131,7 @@ faz isso antes mesmo da validar a modelstate.
 
  </blockquete>
 
- ### 2° passo 
+### 2° passo 
 
  - Na classe 'IdentityConfig' configura o idadentity, inciando com o '.AddDefaultIdentity<IdentityUser>()'.
 
@@ -1145,11 +1142,11 @@ faz isso antes mesmo da validar a modelstate.
  - 
  <blockquete>
 
-           services.AddDefaultIdentity<IdentityUser>()
-                .AddRoles<IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
-                //.AddErrorDescriber<IdentityMensagensPortugues>()
+        services.AddDefaultIdentity<IdentityUser>()
+        .AddRoles<IdentityRole>()
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
+        //.AddErrorDescriber<IdentityMensagensPortugues>()
 
  </blockquete>
  
@@ -1171,7 +1168,7 @@ faz isso antes mesmo da validar a modelstate.
  - Cria o controller chamado "AuthController", herda a classe "MainController", ele é responsavel por
  fazer login e resgistro de usuarios.
 
- ### Registrar
+### Registrar
 
  - Cria o método "Registrar", que recebe um "RegisterUserViewModel" como parametro.
 
@@ -1202,16 +1199,13 @@ faz isso antes mesmo da validar a modelstate.
             [HttpPost("nova-conta")]
             public async Task<ActionResult> Registrar(RegisterUserViewModel registerUser)
             {
-
                 if (!ModelState.IsValid) return CustomResponse(ModelState);
-
                 var user = new IdentityUser
                 {
                     UserName = registerUser.Email,
                     Email = registerUser.Email,
                     EmailConfirmed = true
                 };
-
                 var result = await _userManager.CreateAsync(user, registerUser.Password);
                 if (result.Succeeded)
                 {
@@ -1222,13 +1216,12 @@ faz isso antes mesmo da validar a modelstate.
                 {
                     NotificarErro(error.Description);
                 }
-
                 return CustomResponse(registerUser);
             }
 
     </blockquete>
 
- ### Login
+### Login
 
  - Criando a Task< ActionResult> de logar, recebe como parametro um objeto "LoginUserViewModel".
 
@@ -1245,7 +1238,6 @@ faz isso antes mesmo da validar a modelstate.
             public async Task<ActionResult> Login(LoginUserViewModel loginUser)
             {
                 if (!ModelState.IsValid) return CustomResponse(ModelState);
-
                 var result = await _signInManager.PasswordSignInAsync(loginUser.Email, loginUser.Password, false, true);
 
                 if (result.Succeeded)
@@ -1259,7 +1251,6 @@ faz isso antes mesmo da validar a modelstate.
                     NotificarErro("Usuário temporariamente bloqueado por tentativas inválidas");
                     return CustomResponse(loginUser);
                 }
-
                 NotificarErro("Usuário ou Senha incorretos");
                 return CustomResponse(loginUser);
             }
@@ -1328,12 +1319,12 @@ faz isso antes mesmo da validar a modelstate.
 
     <blockquete>
 
-              "AppSettings": {
-                "Secret": "MEUSEGREDOSUPERSECRETO",
-                "ExpiracaoHoras": 2,
-                "Emissor": "MeuSistema",
-                "ValidoEm": "https://localhost"
-              }
+      "AppSettings": {
+        "Secret": "MEUSEGREDOSUPERSECRETO",
+        "ExpiracaoHoras": 2,
+        "Emissor": "MeuSistema",
+        "ValidoEm": "https://localhost"
+      }
 
     </blockquete>
 
@@ -1354,8 +1345,10 @@ faz isso antes mesmo da validar a modelstate.
     como "AppSettings" e passa como parametro a variavel "appSettingsSection".
 
     <blockquete>
+
         var appSettingsSection = configuration.GetSection("AppSettings");
         services.Configure<AppSettings>(appSettingsSection);
+
     </blockquete>
 
 - Pegando valores configurado e criando uma chave.
@@ -1365,8 +1358,10 @@ faz isso antes mesmo da validar a modelstate.
     2° Cria uma variavel que recebe, valor do "encoding", com base no "segredo".
 
     <blockquete>
+
             var appSettings = appSettingsSection.Get<AppSettings>();
             var key = Encoding.ASCII.GetBytes(appSettings.Secret);
+
     </blockquete>
 
 - Configurando o token do JWT (criando e configurando uma authenticação)
@@ -1393,7 +1388,9 @@ faz isso antes mesmo da validar a modelstate.
     solução: https://qastack.com.br/programming/58593240/how-to-replace-addjwtbearer-extension-in-net-core-3-0
   
     <blockquete>
+
         Install-Package Microsoft.AspNetCore.Authentication.JwtBearer -Version 3.0.0
+
     </blockquete>
 
 - Adicionando configurações a mais com o método "AddJwtBearer()".
@@ -1414,11 +1411,11 @@ faz isso antes mesmo da validar a modelstate.
     Configuração completa:
 
     <blockquete>
+
                 services.AddAuthentication(x =>
                 {
                     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                     x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-
                 }).AddJwtBearer(x =>
                 {
                     x.RequireHttpsMetadata = true;
@@ -1433,6 +1430,7 @@ faz isso antes mesmo da validar a modelstate.
                         ValidIssuer = appSettings.Emissor
                     };
                 });
+
     </blockquete>
 
 ### Arquivo AuthController
@@ -1466,7 +1464,9 @@ faz isso antes mesmo da validar a modelstate.
         - instancia a classe "JwtSecurityTokenHandler" e guarda na variavel "TokenHandler".
 
     <blockquete>
+
         var tokenHandler = new JwtSecurityTokenHandler();
+
     </blockquete>
 
     3° Injetando o "_ appSettings" no construtor.
@@ -1484,7 +1484,9 @@ faz isso antes mesmo da validar a modelstate.
         - o metodo "Encoding.ASCII.GetBytes", recebe uma string.
 
     <blockquete>
+
         var key = Encoding.ASCII.GetBytes( _ appSettings.Secret);
+
     </blockquete>
 
     5° Gerando o Token.
@@ -1505,9 +1507,10 @@ faz isso antes mesmo da validar a modelstate.
             Passando como parametro uma instancia de "new SymmetricSecurityKey" nessa instancia é 
             passado o "key" como parametro, o segundo parameto é "SecurityAlgorithms.HmacSha256Signature".
 
-            SecurityAlgorithms.HmacSha256Signature: é um algoritimo de criptografia que vai ser usado.
+            - SecurityAlgorithms.HmacSha256Signature: é um algoritimo de criptografia que vai ser usado.
 
     <blockquete>
+
             var token = tokenHandler.CreateToken(new SecurityTokenDescriptor
             {
                 Issuer = _ appSettings.Emissor,
@@ -1516,6 +1519,7 @@ faz isso antes mesmo da validar a modelstate.
                 Expires = DateTime.UtcNow.AddHours(_ appSettings.ExpiracaoHoras),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             });
+
     </blockquete>
 
     6° Escrever o token.
@@ -1527,8 +1531,10 @@ faz isso antes mesmo da validar a modelstate.
 
         - Retorna a variavel "encodedToken"!
 
-    <blockquete>                
+    <blockquete>  
+
             var encodedToken = tokenHandler.WriteToken(token);
+
     </blockquete>
 
 # Autorização baseada em Claims via JWT (botando as claims no token[JWT])

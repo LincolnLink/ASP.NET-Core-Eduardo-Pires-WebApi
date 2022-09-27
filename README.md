@@ -1472,16 +1472,16 @@ faz isso antes mesmo da validar a modelstate.
     3° Injetando o "_ appSettings" no construtor.
         (tem um espaço entre o " _ " para não da erro na documentação)
 
-        - Essa injeção tem uma forma diferente, ela usa a interface "IOptions"
+    - Essa injeção tem uma forma diferente, ela usa a interface "IOptions"
 
-        - Cria a propriedade "private readonly AppSettings _ appSettings;"
-        - Cria um novo parametro para o construtor chamado: "IOptions<AppSettings> appSettings,"
-        - Dentro do construtor alimenta a propriedade "_ appSettings = appSettings.Value;"
+    - Cria a propriedade "private readonly AppSettings _ appSettings;"
+    - Cria um novo parametro para o construtor chamado: "IOptions<AppSettings> appSettings,"
+    - Dentro do construtor alimenta a propriedade "_ appSettings = appSettings.Value;"
 
     4° Cria a chave de criptografia.
 
-        - Cria uma variavel chamada "Key", para ela receber a chave de criptografia.
-        - o metodo "Encoding.ASCII.GetBytes", recebe uma string.
+    - Cria uma variavel chamada "Key", para ela receber a chave de criptografia.
+    - o metodo "Encoding.ASCII.GetBytes", recebe uma string.
 
     <blockquete>
 
@@ -1491,23 +1491,23 @@ faz isso antes mesmo da validar a modelstate.
 
     5° Gerando o Token.
 
-        - A: configuração: chama o método "tokenHandler.CreateToken" 
-        e instancia a classe "new SecurityTokenDescriptor"
+    - A: configuração: chama o método "tokenHandler.CreateToken" 
+    e instancia a classe "new SecurityTokenDescriptor"
 
-        - B: configuração: dentro dessa instancia passa toda as coordenadas dentro do token. 
+    - B: configuração: dentro dessa instancia passa toda as coordenadas dentro do token. 
 
-            - Issuer: indica o Emissor que está no "_ appSettings.Emissor";
+    - Issuer: indica o Emissor que está no "_ appSettings.Emissor";
 
-            - Audience: informa o ValidoEm, que está no "_ appSettings.ValidoEm";
+    - Audience: informa o ValidoEm, que está no "_ appSettings.ValidoEm";
 
-            - Expires: Converta o "_ appSettings.ExpiracaoHoras"  usando o
-             "DateTime.UtcNow.AddHours" para usar a hora da local.
+    - Expires: Converta o "_ appSettings.ExpiracaoHoras"  usando o
+     "DateTime.UtcNow.AddHours" para usar a hora da local.
 
-            - SigningCredentials: cria uma instancia de "new SigningCredentials()" e ,
-            Passando como parametro uma instancia de "new SymmetricSecurityKey" nessa instancia é 
-            passado o "key" como parametro, o segundo parameto é "SecurityAlgorithms.HmacSha256Signature".
+    - SigningCredentials: cria uma instancia de "new SigningCredentials()" e ,
+    Passando como parametro uma instancia de "new SymmetricSecurityKey" nessa instancia é 
+    passado o "key" como parametro, o segundo parameto é "SecurityAlgorithms.HmacSha256Signature".
 
-            - SecurityAlgorithms.HmacSha256Signature: é um algoritimo de criptografia que vai ser usado.
+    - SecurityAlgorithms.HmacSha256Signature: é um algoritimo de criptografia que vai ser usado.
 
     <blockquete>
 
@@ -1524,12 +1524,12 @@ faz isso antes mesmo da validar a modelstate.
 
     6° Escrever o token.
 
-        - Cria uma variavel chamada "encodedToken", que recebe o método "tokenHandler.WriteToken()",
-         que recebe a variavel "token" que foi configurado como parametro.      
+    - Cria uma variavel chamada "encodedToken", que recebe o método "tokenHandler.WriteToken()",
+     que recebe a variavel "token" que foi configurado como parametro.      
 
-        - Esse método deixando o token com padrão da web.
+    - Esse método deixando o token com padrão da web.
 
-        - Retorna a variavel "encodedToken"!
+    - Retorna a variavel "encodedToken"!
 
     <blockquete>  
 

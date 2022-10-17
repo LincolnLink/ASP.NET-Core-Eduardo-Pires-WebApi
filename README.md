@@ -1539,22 +1539,24 @@ faz isso antes mesmo da validar a modelstate.
 
 # Autorização baseada em Claims via JWT (botando as claims no token[JWT])
 
- - Primeiro cria uma Claim do tipo "Fornecedor" e valor "Atualizar,Remover", e o id do usuario.
- - Diretamente na tabela "dbo.AspNetUserClaims", apenas para testar.
+- Primeiro cria uma Claim do tipo "Fornecedor" e valor "Atualizar,Remover", e o id do usuario.
+
+    - Diretamente na tabela "dbo.AspNetUserClaims", apenas para testar.
 
 ### Criando um atributo de extenção do Identity, para validar Claims!
 
- - Cria uma classe de extenção chamada "CustomAuthorization".
+- Cria uma classe/ arquivo de extenção chamada "CustomAuthorization".
 
- - Nessa classe tem um método chamado "ValidarClaimsUsuario", que recebe como parametro
- o contexto, o nome da claim e o valor da claim.
+    - Nessa classe tem um método chamado "ValidarClaimsUsuario", que recebe como parametro
+ o contexto, o nome da claim e o valor da claim, classe com o método que valida os valores.
 
- - Usando o contexto é possivel verificar se o usuario está autenticado, usando a
+    - Usando o (HttpContext)contexto é possivel verificar se o usuario está autenticado, usando a
  propriedade "IsAuthenticated".
- - Podemos também verificar se ele tem o tipo/nome da claim e o valor da claim que foi informado,
- usando o ".Claims.Any(...)" do linQ.
 
-<blockquete>
+    - Podemos também verificar se ele tem o tipo/nome da claim e o valor da claim que foi informado,
+ usando o ".Claims.Any(...)" do linQ, o (HttpContext)contexto seria informações vinda da base de dados.
+
+    <blockquete>
 
             public class CustomAuthorization
             {
@@ -1565,21 +1567,20 @@ faz isso antes mesmo da validar a modelstate.
                 }
             }
 
-</blockquete>
+    </blockquete>
 
-
- - Dentro do mesmo arquivo é criada uma 2° classe chamada "ClaimsAuthorizeAttribute" que recebe como herança a
+- Dentro do mesmo arquivo é criada uma 2° classe chamada "ClaimsAuthorizeAttribute" que recebe como herança a
  classe "TypeFilterAttribute", dessa forma define essa 2° classe como um atributo, para ser usado nos controller.
 
- - O método construtor dessa classe recebe o nome e valor da claim como parametro.
+    - O método construtor dessa classe recebe o nome e valor da claim como parametro.
 
- - Dentro do construtor é chamado uma propriedade da classe "TypeFilterAttribute" chamado "Arguments", nele é
+    - Dentro do construtor é chamado uma propriedade da classe "TypeFilterAttribute" chamado "Arguments", nele é
  atribuido uma instancia de array de objetos, aonde tem uma instancia de "Claim" que recebe o nome e o valor da claim
  como parametro.
 
- - Por ultimo deve passar uma 3° classe na base do construtor da 2° classe.
+    - Por ultimo deve passar uma 3° classe na base do construtor da 2° classe.
 
-<blockquete>
+    <blockquete>
 
             public class ClaimsAuthorizeAttribute : TypeFilterAttribute
             {
@@ -1589,23 +1590,22 @@ faz isso antes mesmo da validar a modelstate.
                 }
             }
 
-</blockquete>
+    </blockquete>
 
  - Para finalizar a configuração personalizada de tratamento das claim,
  deve se criar uma 3° classe chamada "RequisitoClaimFilter".
 
- - Passando nessa 3° classe uma interface chamada "IAuthorizationFilter".
- - Criando um propriedade chamada "_claim" do tipo "Claim".
- - O construtor recebe uma injeção de dependencia de "Claim", passando para a propriedade.
+     - Passando nessa 3° classe uma interface chamada "IAuthorizationFilter".
+     - Criando um propriedade chamada "_ claim" do tipo "Claim".
+     - O construtor recebe uma injeção de dependencia de "Claim", passando para a propriedade.
 
- - Cria um método chamado "OnAuthorization" que recebe como parametro 
+    - Cria um método chamado "OnAuthorization" que recebe como parametro 
  o "context" do tipo "AuthorizationFilterContext".
 
- - Com um if ele verifica se o usuario está autenticado usando a propriedade:
- "context.HttpContext.User.Identity.IsAuthenticated"
- - E com outro if verifica se o usuario tem a permição de claim, usando a primeira classe para validar.
+    - Com um if ele verifica se o usuario está autenticado usando a propriedade: "context.HttpContext.User.Identity.IsAuthenticated"
+    - E com outro if verifica se o usuario tem a permição de claim, usando a primeira classe para validar.
 
-<blockquete>
+    <blockquete>
 
             public class RequisitoClaimFilter : IAuthorizationFilter
             {
@@ -1631,16 +1631,15 @@ faz isso antes mesmo da validar a modelstate.
                 }
             }
 
-</blockquete>
+    </blockquete>
 
 ### Aplicando o atributo personalizado no Controller de fornecedor.  
 
  - Aplica o "[Authorize]" no controler.
- - Passe o atributo personalizado(ClaimsAuthorize) que foi criado no action de adicionar,
- passando o nome e valor da claim.
- - Aplica o atributo "ClaimsAuthorize" nas action de atualizar, atualizarEndereco e remover.
+    - Passe o atributo personalizado(ClaimsAuthorize) que foi criado no action de adicionar, passando o nome e valor da claim.
+    - Aplica o atributo "ClaimsAuthorize" nas action de atualizar, atualizarEndereco e remover.
 
-<blockquete>
+    <blockquete>
 
             [ClaimsAuthorize("Fornecedor","Adicionar")]
             [HttpPost]
@@ -1651,41 +1650,40 @@ faz isso antes mesmo da validar a modelstate.
                 await _fornecedorService.Adicionar(_mapper.Map<Fornecedor>(fornecedorViewModel));
 
                 return CustomResponse(fornecedorViewModel);
-            }         
+            }
 
-</blockquete>
+    </blockquete>
 
-### Passando as claims para o token.
+### Passando as claims para o token.(arquivo AuthController)
 
- - Voltando ao método("GerarJwt()") que cria os tokens, que fica na "AuthController".
- - É passado por parametro deo método GerarJwt(), um email do tipo string.
+- Voltando a implementação do método("GerarJwt()") que cria os tokens, que fica na "AuthController".
+    - É passado por parametro deo método GerarJwt(), um email do tipo string.
 
- - Com esse email é possivel obter o usuario usando o método "_userManager.FindByEmailAsync(email)".
- - Com o usuario é possivel obter uma LISTA de Claims e as Roles.
+    - Com esse email é possivel obter o usuario usando o método "_ userManager.FindByEmailAsync(email)".
+    - Com o usuario é possivel obter uma LISTA de Claims e as Roles.
 
- - O método GerarJwt() ele se torna async, troca o retorno dele para "async Task<string>".
+    - O método GerarJwt() ele se torna async, troca o retorno dele para "async Task<string>".
 
-<blockquete>
+    <blockquete>
 
             var user = await _userManager.FindByEmailAsync(email);
             var claims = await _userManager.GetClaimsAsync(user);
             var userRoles = await _userManager.GetRolesAsync(user);
          
-</blockquete>
+    </blockquete>
 
-### Passando Claims adicionais para o token.
+### Passando Claims adicionais para o token.(Essas clams são do token)
 
- - É passado para para a variavel "claims" algumas outras claims.
- - É criado um método privado chamado "ToUnixEpochDate", para converter a hora para um tipo especifico.
- aonde é passada a hora exata da região.
+- É passado para para a variavel "claims" algumas outras claims, além das que existe no banco de dados.
+    - Exemplo: Sub, Email, Jti, Nbf, Iat, são as claims do token.
 
- - É passado também para a variavel claim, as Roles.
+    - É criado um método privado chamado "ToUnixEpochDate", para converter a hora para um tipo especifico. aonde é passada a hora exata da região.
 
- - É preciso fazer uma conversão da list de claim para IdentityClams, isso é possivel
- usando o método "identityClaims.AddClaims", deve ser criado antes uma instancia de "ClaimsIdentity" para
- ultilizar o método.
+    - A listagem de Roles é passada para a listagem de claim.
 
-<blockquete>
+    - É preciso fazer uma conversão da list de claim para IdentityClams, isso é possivel usando o método "identityClaims.AddClaims", deve ser criado antes uma instancia de "ClaimsIdentity" para ultilizar o método.
+
+    <blockquete>
 
             claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id));
             claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email));
@@ -1701,12 +1699,11 @@ faz isso antes mesmo da validar a modelstate.
             var identityClaims = new ClaimsIdentity();
             identityClaims.AddClaims(claims);
 
-</blockquete>
+    </blockquete>
 
- - Com essa lista de claims completa e convertida, devemos passar para o token, ultilizando 
-o atributo  "Subject". 
+    - Com essa lista de claims completa e convertida, devemos passar para o token, ultilizando o atributo  "Subject". 
 
-<blockquete>
+    <blockquete>
 
             var token = tokenHandler.CreateToken(new SecurityTokenDescriptor
             {
@@ -1715,37 +1712,51 @@ o atributo  "Subject".
                 ....
             });
 
-</blockquete>
+    </blockquete>
 
- - Para finalizar devemos passar o email como parametro aonde o método GerarJwt() é chamado.
- - [OBS]Não esqueça de por "awat" agora que o método GerarJwt() é async !, se não ele retorna o result que é uma maquina de stado.
- - Testando o put no postman. provavel que vá da 200.
+- Para finalizar devemos passar o email como parametro aonde o método GerarJwt() é chamado.
+    - [OBS]Não esqueça de por "await" agora que o método GerarJwt() é async !, se não ele retorna o result que é uma maquina de stado.
+    - Testando o put no postman. provavel que vá da 200.
 
- - Testando o adicionar no postman, provavel que de 403 porque não 
-tem a autorização(não tem a claim de adicionar).
+    - Testando o adicionar no postman, provavel que de 403 porque não tem a autorização(não tem a claim de adicionar).
 
 # Finalizando a autorização com JWT (retornando mais dados além do token para o usuario)
 
- - Vamos criar mais 3 viewModel para devolver mais informações para
- o usuario.
+- Vamos criar mais 3 viewModel para devolver mais informações para o usuario.(No arquivo "UserViewModel")
 
- - 1° viewModel: UserTokenViewModel, aonde tem o id, email e uma lista de
- claimsVielModel.
- - 2° viewModel: ClaimViewModel, aonde tem o tipo e valor das claims
- - 3° viewModel: LoginResponseViewModel, aonde tem o token, o tempo de expiração,
- e o UserTOken.
+    - 1° viewModel: UserTokenViewModel, aonde tem o id, email e uma lista de claimsVielModel.
+    - 2° viewModel: ClaimViewModel, aonde tem o tipo e valor das claims
+    - 3° viewModel: LoginResponseViewModel, aonde tem o token, o tempo de expiração, e o UserTOken.
 
- - O método "GerarJwt" deve retornar agora uma "Task<LoginResponseViewModel>"
- - No final do método cria uma instancia de "LoginResponseViewModel", passando os valores de:
+    - O método "GerarJwt" deve retornar agora uma "Task<LoginResponseViewModel>"
+    - No final do método cria uma instancia de "LoginResponseViewModel", passando os valores de:
 
     - AccessToken: que é o "encodedToken", o token completo e finalizado.
 
-    - ExpiresIn: que é o tempo de inspiração, deve ser convertido usando o 
-    "TimeSpan.FromHours(_appSettings.ExpiracaoHoras).TotalSeconds," convertendo para segundos.
+    - ExpiresIn: que é o tempo de inspiração, deve ser convertido usando o "TimeSpan.FromHours(_ appSettings.ExpiracaoHoras).TotalSeconds," convertendo para segundos.
 
-    - UserToken: cria uma instancia de "UserTokenViewModel", passa o id e o email, a propriedade Claims,
-    recebe o list de claims, aonde com o método ".select()" do linQ, cria instancias de "ClaimViewModel"
-    para cada claim, passando tipo e valor
+    - UserToken: cria uma instancia de "UserTokenViewModel", passa o id e o email, a propriedade Claims, recebe o list de claims, aonde com o método ".select()" do linQ, cria instancias de "ClaimViewModel" para cada claim, passando tipo e valor
+
+    <blockquete>
+
+            var encodedToken = tokenHandler.WriteToken(token);
+           
+            // Uma forma de retorno aonde é possivel passar mais informações alem do token.
+            var response = new LoginResponseViewModel
+            {
+                AccessToken = encodedToken,
+                ExpiresIn = TimeSpan.FromHours(_appSettings.ExpiracaoHoras).TotalSeconds,
+                UserToken = new UserTokenViewModel
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    Claims = claims.Select(c => new ClaimViewModel { Type = c.Type, Value = c.Value })
+                }
+            };
+
+            return response;
+
+    </blockquete>
 
  - É retornado um objeto complexo.
 
@@ -1793,22 +1804,25 @@ tem a autorização(não tem a claim de adicionar).
 
 # Consumindo e testando a segurança da API via Angular
 
- - Aplica as claims e Authorize no controller de produto.
+- Aplica as "claims" e "Authorize" no controller de produto.
 
-### Na aplicação em Angular configura o component de Login.
+- Na aplicação em Angular configura o component de Login.
 
 ### LoginComponent 
 
- - Cria um formulario com o campo email e password.
- - Cria um método login, Com o if verifica se os dados são validos e se não estão sujos.
- - Transforma o objeto vazio, em um objeto do tipo user com o valores passado, usando "Object.assign".
- - Chama o serviço "UserService" que tem o método de login, que faz a requisição para a API.
+- configurando:
 
- - Retornando sucesso, método "onSaveComplete" que salva o token e outras informação no navegador.
- - É passado os dados para o navegador, usando o método "persistirUserApp" do serviço "UserService".
- - Volta para a pagina que lista os produtos usando "this.router.navigateByUrl('/lista-produtos');"
+    - Cria um formulario com o campo email e password.
+    - Cria um método login, Com o if verifica se os dados são validos e se não estão sujos.
+    - Transforma o objeto vazio, em um objeto do tipo user com o valores passado, usando "Object.assign".
+    - Chama o serviço "UserService" que tem o método de login, que faz a requisição para a API.
 
-<blockquete>
+    - Retornando sucesso, método "onSaveComplete" que salva o token e outras informação no navegador.
+    - É passado os dados para o navegador, usando o método "persistirUserApp" do serviço "UserService".
+    - Volta para a pagina que lista os produtos usando "this.router.navigateByUrl('/lista-produtos');"
+
+    <blockquete>
+
                 userForm: FormGroup;
                 user: User;
                 errors: any[] = [];
@@ -1843,24 +1857,25 @@ tem a autorização(não tem a claim de adicionar).
                 this.router.navigateByUrl('/lista-produtos');
                 }
 
-</blockquete>
+    </blockquete>
     
 ### UserService 
- - O serviço tem o método "login()" que retorna um Observable<User> e "persistirUserApp".
 
- - login: a url que serve para a fazer a requisição, está dentro da propriedade "UrlServiceV1".
- - Essa propriedade fica no "BaseService", uma classe que é herdada.
- - com isso faz a concatenação com "entrar" que é a action que faz login, "user" que é o objeto que tem email e senha,
- e o método "super.ObterHeaderJson()".
+- O serviço tem o método "login()" que retorna um Observable<User> e "persistirUserApp".
 
- -Tem um tratamento dentro do .map, aonde vai ser retornado o objeto ou um objeto vazio.
+    - login: a url que serve para a fazer a requisição, está dentro da propriedade "UrlServiceV1".
+    - Essa propriedade fica no "BaseService", uma classe que é herdada.
+    - com isso faz a concatenação com "entrar" que é a action que faz login, "user" que é o objeto que tem email e senha,
+    e o método "super.ObterHeaderJson()".
 
- - persistirUserApp(): cria um localStorage, com o nome de "app.token" para quardar o "response.accessToken",
- que é o token gerado na API.
- - Também cria um localStorage chamado "app.user" que é um objeto com os dados do usuario.
- - O localStorage "app.user" é convertido para string, usando o metodo "JSON.stringify", para poder ser salvo.
+    -Tem um tratamento dentro do .map, aonde vai ser retornado o objeto ou um objeto vazio.
 
-<blockquete>
+    - persistirUserApp(): cria um localStorage, com o nome de "app.token" para quardar o "response.accessToken",
+    que é o token gerado na API.
+    - Também cria um localStorage chamado "app.user" que é um objeto com os dados do usuario.
+    - O localStorage "app.user" é convertido para string, usando o metodo "JSON.stringify", para poder ser salvo.
+
+    <blockquete>
 
                 @Injectable()
                 export class UserService extends BaseService {
@@ -1884,41 +1899,41 @@ tem a autorização(não tem a claim de adicionar).
                     }
                 }
 
-</blockquete>
+    </blockquete>
 
- - O método "super.ObterHeaderJson()" fica na classe "BaseService", ele retorna um objeto que tem a propriedade "headers".
+- O método "super.ObterHeaderJson()" fica na classe "BaseService", ele retorna um objeto que tem a propriedade "headers".
   
-<blockquete>
+    <blockquete>
 
-                protected ObterHeaderJson() {
-                    return {
-                        headers: new HttpHeaders({
-                            'Content-Type': 'application/json'
-                        })
-                    };
-                }
+            protected ObterHeaderJson() {
+                return {
+                    headers: new HttpHeaders({
+                        'Content-Type': 'application/json'
+                    })
+                };
+            }
 
-</blockquete>
+    </blockquete>
 
 ### MenuUserComponent.html
 
- - Usa o component Angular "ngSwitch" para informar se o usuario está logado ou não.
- - 
+- Usa o component Angular "ngSwitch" para informar se o usuario está logado ou não.
 
-<blockquete>
 
-                <ul [ngSwitch]="userLogado()" class="nav navbar-nav navbar-right">
-                        <li *ngSwitchCase="false"><a  class="nav-link text-dark" [routerLink]="['/entrar']">Entrar</a></li>
-                        <li *ngSwitchCase="true"><a  class="nav-link text-dark">{{ saudacao }}</a></li>
-                </ul>
+    <blockquete>
 
-</blockquete>
+                    <ul [ngSwitch]="userLogado()" class="nav navbar-nav navbar-right">
+                            <li *ngSwitchCase="false"><a  class="nav-link text-dark" [routerLink]="['/entrar']">Entrar</a></li>
+                            <li *ngSwitchCase="true"><a  class="nav-link text-dark">{{ saudacao }}</a></li>
+                    </ul>
+
+    </blockquete>
 
 ### MenuUserComponent.ts
 
- - Chama o servico que tem o método "obterUsuario" para verificar se tem usuario logado ou não. 
+- Chama o servico que tem o método "obterUsuario" para verificar se tem usuario logado ou não. 
 
-<blockquete>
+    <blockquete>
 
                 saudacao: string;
 
@@ -1935,63 +1950,62 @@ tem a autorização(não tem a claim de adicionar).
                     return false;
                 }
 
-</blockquete>
+    </blockquete>
 
 ### BaseService
 
- - No serviço "BaseService" tem um método "obterUsuario" que pega dados do "localStorage" usnado o método "getItem".
- - É passado a chave do "localStorage" que tem o nome "'app.token'", esse resultado é convertido 
+- No serviço "BaseService" tem um método "obterUsuario" que pega dados do "localStorage" usnado o método "getItem".
+- É passado a chave do "localStorage" que tem o nome "'app.token'", esse resultado é convertido 
 usando o método "JSON.parse()"
 
+    <blockquete>
 
-<blockquete>
+            public obterUsuario() {
+                return JSON.parse(localStorage.getItem('app.user'));
+            }
 
-                public obterUsuario() {
-                    return JSON.parse(localStorage.getItem('app.user'));
-                }
-
-</blockquete>
+    </blockquete>
 
 ### Passando um HEADER em uma requisição do Angular.
 
- - É passado um método chamado "ObterAuthHeaderJson()", como 2° parametro na requisição.
+- É passado um método chamado "ObterAuthHeaderJson()", como 2° parametro na requisição.
 
-<blockquete>
+    <blockquete>
 
-                obterTodos(): Observable<Produto[]> {
-                    return this.http
-                        .get<Produto[]>(this.UrlServiceV1 + "produtos", super.ObterAuthHeaderJson())
-                        .pipe(
-                            catchError(this.serviceError));
-                }
+            obterTodos(): Observable<Produto[]> {
+                return this.http
+                    .get<Produto[]>(this.UrlServiceV1 + "produtos", super.ObterAuthHeaderJson())
+                    .pipe(
+                        catchError(this.serviceError));
+            }
 
-</blockquete>
+    </blockquete>
 
- - Ele retorna um objeto que tem um propriedade chamada "headers", que é uma instancia de "HttpHeaders"
- - Essa informação é importante, por que dessa forma é passada o token do usuario logado, usando o atributo "Authorization".
- - O valor passado é o tipo do token e uma concatenação do método que retorna no token usando o método "obterTokenUsuario".
- - O método "obterTokenUsuario()" obtem o token do localStorage.
- - Assim ele autoriza a fazer as requisições.
+    - Ele retorna um objeto que tem um propriedade chamada "headers", que é uma instancia de "HttpHeaders"
+    - Essa informação é importante, por que dessa forma é passada o token do usuario logado, usando o atributo "Authorization".
+    - O valor passado é o tipo do token e uma concatenação do método que retorna no token usando o método "obterTokenUsuario".
+    - O método "obterTokenUsuario()" obtem o token do localStorage.
+    - Assim ele autoriza a fazer as requisições.
   
-<blockquete>
+    <blockquete>
 
-                protected ObterAuthHeaderJson(){
-                    return {
-                        headers: new HttpHeaders({
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'MyClientCert': '',        // This is empty
-                            'MyToken': ''   ,        // This is empty ,
-                            'Authorization': `Bearer ${this.obterTokenUsuario()}`,
-                            'Access-Control-Allow-Origin': '*',
-                            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, PATCH, DELETE',
-                            'Access-Control-Allow-Headers':'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers',
+            protected ObterAuthHeaderJson(){
+                return {
+                    headers: new HttpHeaders({
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'MyClientCert': '',        // This is empty
+                        'MyToken': ''   ,        // This is empty ,
+                        'Authorization': `Bearer ${this.obterTokenUsuario()}`,
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, PATCH, DELETE',
+                        'Access-Control-Allow-Headers':'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers',
 
-                        })
-                    };
-                }
+                    })
+                };
+            }
 
-</blockquete>
+    </blockquete>
 
 # Interagindo com o usuário logado de qualquer camada
 

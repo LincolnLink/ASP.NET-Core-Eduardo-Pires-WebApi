@@ -18,7 +18,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace DevIO.Api.Controllers
 {
     //[Route("api/v{version:apiVersion}")]   
-    [Route("api")]    
+    [Route("api")]  
     public class AuthController : MainController
     {
         private readonly ILogger _logger;
@@ -56,9 +56,10 @@ namespace DevIO.Api.Controllers
             {
                 await _signInManager.SignInAsync(user, false);
 
-                
+
                 // Gerando o token e devolve ele !
                 return CustomResponse(await GerarJwt(user.Email));
+                //return CustomResponse(GerarJwt());
             }
             foreach (var error in result.Errors)
             {
@@ -78,8 +79,9 @@ namespace DevIO.Api.Controllers
 
             if (result.Succeeded)
             {               
-                _logger.LogInformation("Usuario " + loginUser.Email + " logado com sucesso");                
+                _logger.LogInformation("Usuario " + loginUser.Email + " logado com sucesso");
                 return CustomResponse(await GerarJwt(loginUser.Email));
+                //return CustomResponse(GerarJwt());
             }
             if (result.IsLockedOut)
             {
@@ -92,24 +94,28 @@ namespace DevIO.Api.Controllers
         }
 
         //private async Task<LoginResponseViewModel> GerarJwt(string email)//string email
+        //private string GerarJwt()
         private async Task<LoginResponseViewModel> GerarJwt(string email)
         {
             
-            var user = await _userManager.FindByEmailAsync(email);
-            var claims = await _userManager.GetClaimsAsync(user);
-            var userRoles = await _userManager.GetRolesAsync(user);
+           var user = await _userManager.FindByEmailAsync(email);
+           var claims = await _userManager.GetClaimsAsync(user);
+           var userRoles = await _userManager.GetRolesAsync(user);
+
+           // Adicionando claims do token.
+           claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id));
+           claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email));
+           claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
+           claims.Add(new Claim(JwtRegisteredClaimNames.Nbf, ToUnixEpochDate(DateTime.UtcNow).ToString()));
+           claims.Add(new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64));
            
-            claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id));
-            claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email));
-            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
-            claims.Add(new Claim(JwtRegisteredClaimNames.Nbf, ToUnixEpochDate(DateTime.UtcNow).ToString()));
-            claims.Add(new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64));
-           
+           // Passando as Roles para a listagem de claims
            foreach (var userRole in userRoles)
            {
                claims.Add(new Claim("role", userRole));
            }
-           
+
+           // Convertendo para "ClaimsIdentity"
            var identityClaims = new ClaimsIdentity();
            identityClaims.AddClaims(claims);
 
@@ -120,16 +126,14 @@ namespace DevIO.Api.Controllers
                 Issuer = _appSettings.Emissor,
                 Audience = _appSettings.ValidoEm,               
                 Expires = DateTime.UtcNow.AddHours(_appSettings.ExpiracaoHoras),
-                Subject = identityClaims,
+                Subject = identityClaims, // configura as Claims no token.
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
                 
             });
 
             var encodedToken = tokenHandler.WriteToken(token);
-
-            //return encodedToken;
-            // uma forma de retorno aonde é possivel passar mais informações alem do token.
-            
+           
+            // Uma forma de retorno aonde é possivel passar mais informações alem do token.
             var response = new LoginResponseViewModel
             {
                 AccessToken = encodedToken,
@@ -143,6 +147,8 @@ namespace DevIO.Api.Controllers
             };
 
             return response;
+
+            //return encodedToken //forma antiga que passa só o token;
         }
 
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using DevIO.Api.Extensions;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -18,7 +19,7 @@ namespace DevIO.Api.Configuration
         public static IServiceCollection AddApiConfig(this IServiceCollection services)
         {
 
-            services.AddControllers().AddNewtonsoftJson();
+            services.AddControllers();//.AddNewtonsoftJson();
 
             /*
             services.AddApiVersioning(options =>
@@ -43,20 +44,20 @@ namespace DevIO.Api.Configuration
             // Setup CORS
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll",
-                   configurePolicy: builder => builder.AllowAnyOrigin()
+                options.AddPolicy("Development",
+                   builder => builder
+                        .AllowAnyOrigin()
                         .AllowAnyMethod()
-                        .AllowAnyHeader()
-                     );                
+                        .AllowAnyHeader());                
                 
-                options.AddPolicy(name: "Production",
-                    configurePolicy: builder =>
-                     builder
-                     .WithMethods("GET")
-                     .WithOrigins("http://localhost:4200", "https://localhost:4200")
-                     .SetIsOriginAllowedToAllowWildcardSubdomains()
-                     //.WithHeaders(HeaderNames.ContentType, "x-custom-header")
-                     .AllowAnyHeader()); 
+                options.AddPolicy("Production",
+                    builder =>
+                        builder
+                         .WithMethods("GET")
+                         .WithOrigins("http://localhost:4200", "https://localhost:4200")
+                         .SetIsOriginAllowedToAllowWildcardSubdomains()
+                         //.WithHeaders(HeaderNames.ContentType, "x-custom-header")
+                         .AllowAnyHeader()); 
             });
 
             //services.AddHealthChecksUI();
@@ -72,20 +73,19 @@ namespace DevIO.Api.Configuration
 
             if (env.IsDevelopment())
             {
-                app.UseCors("AllowAll");
+                app.UseCors("Development");
                 app.UseDeveloperExceptionPage();
             }
             else
             {
-                app.UseCors("Production"); // Usar apenas nas demos => Configuração Ideal: Production
+                app.UseCors("Development"); // Usar apenas nas demos => Configuração Ideal: Production
                 app.UseHsts();
             }
 
             //app.UseMiddleware<ExceptionMiddleware>();
-            //app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();                      
 
-           
-            //app.UseCors("AllowAll");
+            //app.UseCors("Development");
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -95,6 +95,22 @@ namespace DevIO.Api.Configuration
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                /*
+                 endpoints.MapHealthChecks("/api/hc", new HealthCheckOptions()
+                {
+                    Predicate = _ => true,
+                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+                });
+                endpoints.MapHealthChecksUI(options =>
+                {
+                    options.UIPath = "/api/hc-ui";
+                    options.ResourcesPath = "/api/hc-ui-resources";
+
+                    options.UseRelativeApiPath = false;
+                    options.UseRelativeResourcesPath = false;
+                    options.UseRelativeWebhookPath = false;
+                });
+                 */
             });
 
             return app;

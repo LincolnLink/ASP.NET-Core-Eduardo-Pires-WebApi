@@ -13,8 +13,7 @@ using DevIO.Api.Extensions;
 namespace DevIO.Api.Controllers
 {
     [Authorize]
-    [Route("api/fornecedores")]
-    [EnableCors("AllowAll")]
+    [Route("api/fornecedores")]    
     public class FornecedoresController : MainController
     {
         private readonly IMapper _mapper;

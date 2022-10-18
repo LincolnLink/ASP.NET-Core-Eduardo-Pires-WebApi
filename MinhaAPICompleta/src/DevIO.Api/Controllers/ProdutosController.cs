@@ -16,8 +16,7 @@ using System.Threading.Tasks;
 namespace DevIO.Api.Controllers
 {
     [Authorize]
-    [Route("api/produtos")]
-    [EnableCors("AllowAll")]
+    [Route("api/produtos")]    
     public class ProdutosController : MainController
     {        
         private readonly IMapper _mapper;

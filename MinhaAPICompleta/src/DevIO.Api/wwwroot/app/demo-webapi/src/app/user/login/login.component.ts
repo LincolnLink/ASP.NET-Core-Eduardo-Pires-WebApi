@@ -43,6 +43,7 @@ export class LoginComponent implements OnInit {
   }
 
   onError(fail: any) {
-    this.errors = fail.error.errors;
+    console.log('erro console:', fail.error);
+    this.errors = fail.error?.errors ? fail.error?.errors  : [] ;
   }
 }

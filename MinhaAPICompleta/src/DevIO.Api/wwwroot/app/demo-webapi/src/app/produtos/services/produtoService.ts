@@ -13,7 +13,7 @@ export class ProdutoService extends BaseService {
 
     obterTodos(): Observable<Produto[]> {
         return this.http
-            .get<Produto[]>(this.UrlServiceV1 + "produtos", super.ObterAuthHeaderJson())
+            .get<Produto[]>(this.UrlServiceV1 + "produtos/Adicionar", super.ObterAuthHeaderJson())
             .pipe(
                 catchError(this.serviceError));
     }

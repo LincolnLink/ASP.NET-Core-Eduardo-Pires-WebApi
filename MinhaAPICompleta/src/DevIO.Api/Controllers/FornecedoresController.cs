@@ -32,9 +32,8 @@ namespace DevIO.Api.Controllers
             _fornecedorService = fornecedorService;
             _enderecoRepository = enderecoRepository;
             _fornecedorRepository = fornecedorRepository;
-        } 
-        
-        
+        }
+                
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FornecedorViewModel>>> ObterTodos()
         {

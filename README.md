@@ -616,7 +616,7 @@ porq já tem o [ApiController] configurado na controller.
  <blockquete>
 
             [HttpGet("{id:guid}")]
-            public async Task<ActionResult<FornecedorViewModel>> ObterPorId(Guid id)
+            public async Task < ActionResult< FornecedorViewModel>> ObterPorId(Guid id)
             {
                 // Converte o o model fornecedor para fornecedorViewModel.
                 var fornecedor = await ObterFornecedorProdutosEndereco(id);
@@ -626,9 +626,9 @@ porq já tem o [ApiController] configurado na controller.
                 return Ok(fornecedor); //200 Ok
             }
 
-            public async Task<FornecedorViewModel> ObterFornecedorProdutosEndereco(Guid id)
+            public async Task< FornecedorViewModel> ObterFornecedorProdutosEndereco(Guid id)
             {
-                return _mapper.Map<FornecedorViewModel>(await _fornecedorRepository.ObterFornecedorProdutosEndereco(id));
+                return _ mapper.Map< FornecedorViewModel>(await _ fornecedorRepository.ObterFornecedorProdutosEndereco(id));
             }
 
  </blockquete>
@@ -1103,14 +1103,14 @@ faz isso antes mesmo da validar a modelstate.
 
  - Configurao o ApplicationDbContext, herdando a classe 'IdentityDbContext' e no construtor passa os paremetros.
 
- <blockquete>
+<blockquete>
 
-            public class ApplicationDbContext : IdentityDbContext
-            {
-                public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
-            }
+        public class ApplicationDbContext : IdentityDbContext
+        {
+            public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+        }
 
- </blockquete>
+</blockquete>
 
  - Copia e cola a configuração do "AddDbContext" que esta na startUp para a o método "AddIdentityConfig",
  que esta na classe "IdentityConfig", usando o contexto "ApplicationDbContext".
@@ -1140,15 +1140,15 @@ faz isso antes mesmo da validar a modelstate.
  - "AddEntityFrameworkStores<ApplicationDbContext>()" informa que esta trabalhando com entityframework.
  - "AddDefaultTokenProviders" gerador de token para resetar senha e confirmar email.
  - 
- <blockquete>
+<blockquete>
 
-        services.AddDefaultIdentity<IdentityUser>()
-        .AddRoles<IdentityRole>()
-        .AddEntityFrameworkStores<ApplicationDbContext>()
-        .AddDefaultTokenProviders();
-        //.AddErrorDescriber<IdentityMensagensPortugues>()
+    services.AddDefaultIdentity< IdentityUser>()
+    .AddRoles< IdentityRole>()
+    .AddEntityFrameworkStores< ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+    //.AddErrorDescriber< IdentityMensagensPortugues>()
 
- </blockquete>
+</blockquete>
  
  - No método "UseApiConfig" que fica na classe "ApiConfig" bota a coonfiguração "app.UseAuthentication();".
 
@@ -1194,32 +1194,32 @@ faz isso antes mesmo da validar a modelstate.
 
  
 
-    <blockquete>
+<blockquete>
 
-            [HttpPost("nova-conta")]
-            public async Task<ActionResult> Registrar(RegisterUserViewModel registerUser)
+        [HttpPost("nova-conta")]
+        public async Task<ActionResult> Registrar(RegisterUserViewModel registerUser)
+        {
+            if (!ModelState.IsValid) return CustomResponse(ModelState);
+            var user = new IdentityUser
             {
-                if (!ModelState.IsValid) return CustomResponse(ModelState);
-                var user = new IdentityUser
-                {
-                    UserName = registerUser.Email,
-                    Email = registerUser.Email,
-                    EmailConfirmed = true
-                };
-                var result = await _userManager.CreateAsync(user, registerUser.Password);
-                if (result.Succeeded)
-                {
-                    await _signInManager.SignInAsync(user, false);
-                    return CustomResponse(await GerarJwt(user.Email));
-                }
-                foreach (var error in result.Errors)
-                {
-                    NotificarErro(error.Description);
-                }
-                return CustomResponse(registerUser);
+                UserName = registerUser.Email,
+                Email = registerUser.Email,
+                EmailConfirmed = true
+            };
+            var result = await _userManager.CreateAsync(user, registerUser.Password);
+            if (result.Succeeded)
+            {
+                await _signInManager.SignInAsync(user, false);
+                return CustomResponse(await GerarJwt(user.Email));
             }
+            foreach (var error in result.Errors)
+            {
+                NotificarErro(error.Description);
+            }
+            return CustomResponse(registerUser);
+        }
 
-    </blockquete>
+</blockquete>
 
 ### Login
 
@@ -1232,28 +1232,28 @@ faz isso antes mesmo da validar a modelstate.
  - Caso consiga logar com sucesso, retorna o 'CustomResponse()',  cria documenta no logger. 
  - Se não conseguiu logar trata o erro com "CustomResponse".
   
- <blockquete>
+<blockquete>
 
-            [HttpPost("entrar")]
-            public async Task<ActionResult> Login(LoginUserViewModel loginUser)
+        [HttpPost("entrar")]
+        public async Task < ActionResult> Login(LoginUserViewModel loginUser)
+        {
+            if (!ModelState.IsValid) return CustomResponse(ModelState);
+            var result = await _ signInManager.PasswordSignInAsync(loginUser.Email, loginUser.Password, false, true);
+
+            if (result.Succeeded)
             {
-                if (!ModelState.IsValid) return CustomResponse(ModelState);
-                var result = await _signInManager.PasswordSignInAsync(loginUser.Email, loginUser.Password, false, true);
-
-                if (result.Succeeded)
-                {
-                    return CustomResponse(loginUser);
-                    //_logger.LogInformation("Usuario " + loginUser.Email + " logado com sucesso");
-                    //return CustomResponse(await GerarJwt(loginUser.Email));
-                }
-                if (result.IsLockedOut)
-                {
-                    NotificarErro("Usuário temporariamente bloqueado por tentativas inválidas");
-                    return CustomResponse(loginUser);
-                }
-                NotificarErro("Usuário ou Senha incorretos");
+                return CustomResponse(loginUser);
+                //_ logger.LogInformation("Usuario " + loginUser.Email + " logado com sucesso");
+                //return CustomResponse(await GerarJwt(loginUser.Email));
+            }
+            if (result.IsLockedOut)
+            {
+                NotificarErro("Usuário temporariamente bloqueado por tentativas inválidas");
                 return CustomResponse(loginUser);
             }
+            NotificarErro("Usuário ou Senha incorretos");
+            return CustomResponse(loginUser);
+        }
 
  </blockquete>
  
@@ -1441,20 +1441,20 @@ faz isso antes mesmo da validar a modelstate.
     - É chamado o métod tanto para o "Criar" como para "Registrar".
     - A chamada do "GerarJwt": 
 
-    <blockquete>
+<blockquete>
 
         if (result.Succeeded)
         {      
-            await _signInManager.SignInAsync(user, false);
+            await _ signInManager.SignInAsync(user, false);
             // Gerando o token e devolve ele !
             return CustomResponse(await GerarJwt(user.Email)); 
-        } 
+        }
 
-    </blockquete>
+</blockquete>
 
 - Criando o método GerarJwt(), ele devolve o token que foi gerado!
 
-    1° Caracteristicas do Método GerarJwt().
+- 1° Caracteristicas do Método GerarJwt().
 
     - Ele é privado e async, devolve um Task<string>, recebe um email do usuario.
     - Gera um token para aquele email.
@@ -1463,14 +1463,14 @@ faz isso antes mesmo da validar a modelstate.
 
     - instancia a classe "JwtSecurityTokenHandler" e guarda na variavel "TokenHandler".
 
-    <blockquete>
+<blockquete>
 
-        var tokenHandler = new JwtSecurityTokenHandler();
+    var tokenHandler = new JwtSecurityTokenHandler();
 
-    </blockquete>
+</blockquete>
 
-    3° Injetando o "_ appSettings" no construtor.
-        (tem um espaço entre o " _ " para não da erro na documentação)
+- 3° Injetando o "_ appSettings" no construtor.
+    (tem um espaço entre o " _ " para não da erro na documentação)
 
     - Essa injeção tem uma forma diferente, ela usa a interface "IOptions"
 
@@ -1478,18 +1478,18 @@ faz isso antes mesmo da validar a modelstate.
     - Cria um novo parametro para o construtor chamado: "IOptions<AppSettings> appSettings,"
     - Dentro do construtor alimenta a propriedade "_ appSettings = appSettings.Value;"
 
-    4° Cria a chave de criptografia.
+- 4° Cria a chave de criptografia.
 
     - Cria uma variavel chamada "Key", para ela receber a chave de criptografia.
     - o metodo "Encoding.ASCII.GetBytes", recebe uma string.
 
-    <blockquete>
+<blockquete>
 
         var key = Encoding.ASCII.GetBytes( _ appSettings.Secret);
 
-    </blockquete>
+</blockquete>
 
-    5° Gerando o Token.
+- 5° Gerando o Token.
 
     - A: configuração: chama o método "tokenHandler.CreateToken" 
     e instancia a classe "new SecurityTokenDescriptor"
@@ -1509,43 +1509,43 @@ faz isso antes mesmo da validar a modelstate.
 
         - SecurityAlgorithms.HmacSha256Signature: é um algoritimo de criptografia que vai ser usado.
 
-    <blockquete>
+<blockquete>
 
-            var token = tokenHandler.CreateToken(new SecurityTokenDescriptor
-            {
-                Issuer = _ appSettings.Emissor,
-                Audience = _ appSettings.ValidoEm,
-                Subject = identityClaims,
-                Expires = DateTime.UtcNow.AddHours(_ appSettings.ExpiracaoHoras),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            });
+        var token = tokenHandler.CreateToken(new SecurityTokenDescriptor
+        {
+            Issuer = _ appSettings.Emissor,
+            Audience = _ appSettings.ValidoEm,
+            Subject = identityClaims,
+            Expires = DateTime.UtcNow.AddHours(_ appSettings.ExpiracaoHoras),
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+        });
 
-    </blockquete>
+</blockquete>
 
-    6° Escrever o token.
+- 6° Escrever o token.
 
-    - Cria uma variavel chamada "encodedToken", que recebe o método "tokenHandler.WriteToken()",
+ - Cria uma variavel chamada "encodedToken", que recebe o método "tokenHandler.WriteToken()",
      que recebe a variavel "token" que foi configurado como parametro.      
 
-    - Esse método deixando o token com padrão da web.
+ - Esse método deixando o token com padrão da web.
 
-    - Retorna a variavel "encodedToken"!
+ - Retorna a variavel "encodedToken"!
 
-    <blockquete>  
+<blockquete>  
 
-            var encodedToken = tokenHandler.WriteToken(token);
+        var encodedToken = tokenHandler.WriteToken(token);
 
-    </blockquete>
+</blockquete>
 
 # Autorização baseada em Claims via JWT (botando as claims no token[JWT])
 
-- Primeiro cria uma Claim do tipo "Fornecedor" e valor "Atualizar,Remover", e o id do usuario.
+ - Primeiro cria uma Claim do tipo "Fornecedor" e valor "Atualizar,Remover", e o id do usuario.
 
     - Diretamente na tabela "dbo.AspNetUserClaims", apenas para testar.
 
-### Criando um atributo de extenção do Identity, para validar Claims!
+ ### Criando um atributo de extenção do Identity, para validar Claims!
 
-- Cria uma classe/ arquivo de extenção chamada "CustomAuthorization".
+ - Cria uma classe/ arquivo de extenção chamada "CustomAuthorization".
 
     - Nessa classe tem um método chamado "ValidarClaimsUsuario", que recebe como parametro
  o contexto, o nome da claim e o valor da claim, classe com o método que valida os valores.
@@ -1569,7 +1569,7 @@ faz isso antes mesmo da validar a modelstate.
 
     </blockquete>
 
-- Dentro do mesmo arquivo é criada uma 2° classe chamada "ClaimsAuthorizeAttribute" que recebe como herança a
+ - Dentro do mesmo arquivo é criada uma 2° classe chamada "ClaimsAuthorizeAttribute" que recebe como herança a
  classe "TypeFilterAttribute", dessa forma define essa 2° classe como um atributo, para ser usado nos controller.
 
     - O método construtor dessa classe recebe o nome e valor da claim como parametro.
@@ -1605,58 +1605,58 @@ faz isso antes mesmo da validar a modelstate.
     - Com um if ele verifica se o usuario está autenticado usando a propriedade: "context.HttpContext.User.Identity.IsAuthenticated"
     - E com outro if verifica se o usuario tem a permição de claim, usando a primeira classe para validar.
 
-    <blockquete>
+ <blockquete>
 
-            public class RequisitoClaimFilter : IAuthorizationFilter
+        public class RequisitoClaimFilter : IAuthorizationFilter
+        {
+            private readonly Claim _ claim;
+
+            public RequisitoClaimFilter(Claim claim)
             {
-                private readonly Claim _claim;
-
-                public RequisitoClaimFilter(Claim claim)
-                {
-                    _claim = claim;
-                }
-
-                public void OnAuthorization(AuthorizationFilterContext context)
-                {
-                    if (!context.HttpContext.User.Identity.IsAuthenticated)
-                    {
-                        context.Result = new StatusCodeResult(401);
-                        return;
-                    }
-
-                    if (!CustomAuthorization.ValidarClaimsUsuario(context.HttpContext, _claim.Type, _claim.Value))
-                    {
-                        context.Result = new StatusCodeResult(403);
-                    }
-                }
+                _ claim = claim;
             }
 
-    </blockquete>
+            public void OnAuthorization(AuthorizationFilterContext context)
+            {
+                if (!context.HttpContext.User.Identity.IsAuthenticated)
+                {
+                    context.Result = new StatusCodeResult(401);
+                    return;
+                }
 
-### Aplicando o atributo personalizado no Controller de fornecedor.  
+                if (!CustomAuthorization.ValidarClaimsUsuario(context.HttpContext, _ claim.Type, _ claim.Value))
+                {
+                    context.Result = new StatusCodeResult(403);
+                }
+            }
+        }
+
+ </blockquete>
+
+ ### Aplicando o atributo personalizado no Controller de fornecedor.  
 
  - Aplica o "[Authorize]" no controler.
     - Passe o atributo personalizado(ClaimsAuthorize) que foi criado no action de adicionar, passando o nome e valor da claim.
     - Aplica o atributo "ClaimsAuthorize" nas action de atualizar, atualizarEndereco e remover.
 
-    <blockquete>
+ <blockquete>
 
-            [ClaimsAuthorize("Fornecedor","Adicionar")]
-            [HttpPost]
-            public async Task<ActionResult<FornecedorViewModel>> Adicionar(FornecedorViewModel fornecedorViewModel)
-            {
-                if (!ModelState.IsValid) return CustomResponse(ModelState);
-                       
-                await _fornecedorService.Adicionar(_mapper.Map<Fornecedor>(fornecedorViewModel));
+        [ ClaimsAuthorize("Fornecedor","Adicionar") ]
+        [ HttpPost ]
+        public async Task< ActionResult< FornecedorViewModel>> Adicionar(FornecedorViewModel fornecedorViewModel)
+        {
+        if (!ModelState.IsValid) return CustomResponse(ModelState);
+               
+        await _ fornecedorService.Adicionar(_ mapper.Map< Fornecedor>(fornecedorViewModel));
 
-                return CustomResponse(fornecedorViewModel);
-            }
+        return CustomResponse(fornecedorViewModel);
+        }
 
-    </blockquete>
+ </blockquete>
 
-### Passando as claims para o token.(arquivo AuthController)
+ ### Passando as claims para o token.(arquivo AuthController)
 
-- Voltando a implementação do método("GerarJwt()") que cria os tokens, que fica na "AuthController".
+ - Voltando a implementação do método("GerarJwt()") que cria os tokens, que fica na "AuthController".
     - É passado por parametro deo método GerarJwt(), um email do tipo string.
 
     - Com esse email é possivel obter o usuario usando o método "_ userManager.FindByEmailAsync(email)".
@@ -1664,17 +1664,17 @@ faz isso antes mesmo da validar a modelstate.
 
     - O método GerarJwt() ele se torna async, troca o retorno dele para "async Task<string>".
 
-    <blockquete>
+ <blockquete>
 
-            var user = await _userManager.FindByEmailAsync(email);
-            var claims = await _userManager.GetClaimsAsync(user);
-            var userRoles = await _userManager.GetRolesAsync(user);
-         
-    </blockquete>
+    var user = await _ userManager.FindByEmailAsync(email);
+    var claims = await _ userManager.GetClaimsAsync(user);
+    var userRoles = await _ userManager.GetRolesAsync(user);
+     
+ </blockquete>
 
-### Passando Claims adicionais para o token.(Essas clams são do token)
+ ### Passando Claims adicionais para o token.(Essas clams são do token)
 
-- É passado para para a variavel "claims" algumas outras claims, além das que existe no banco de dados.
+ - É passado para para a variavel "claims" algumas outras claims, além das que existe no banco de dados.
     - Exemplo: Sub, Email, Jti, Nbf, Iat, são as claims do token.
 
     - É criado um método privado chamado "ToUnixEpochDate", para converter a hora para um tipo especifico. aonde é passada a hora exata da região.
@@ -1714,7 +1714,7 @@ faz isso antes mesmo da validar a modelstate.
 
     </blockquete>
 
-- Para finalizar devemos passar o email como parametro aonde o método GerarJwt() é chamado.
+ - Para finalizar devemos passar o email como parametro aonde o método GerarJwt() é chamado.
     - [OBS]Não esqueça de por "await" agora que o método GerarJwt() é async !, se não ele retorna o result que é uma maquina de stado.
     - Testando o put no postman. provavel que vá da 200.
 
@@ -1722,13 +1722,13 @@ faz isso antes mesmo da validar a modelstate.
 
 # Finalizando a autorização com JWT (retornando mais dados além do token para o usuario)
 
-- Vamos criar mais 3 viewModel para devolver mais informações para o usuario.(No arquivo "UserViewModel")
+ - Vamos criar mais 3 viewModel para devolver mais informações para o usuario.(No arquivo "UserViewModel")
 
     - 1° viewModel: UserTokenViewModel, aonde tem o id, email e uma lista de claimsVielModel.
     - 2° viewModel: ClaimViewModel, aonde tem o tipo e valor das claims
     - 3° viewModel: LoginResponseViewModel, aonde tem o token, o tempo de expiração, e o UserTOken.
 
-    - O método "GerarJwt" deve retornar agora uma "Task<LoginResponseViewModel>"
+    - O método "GerarJwt" deve retornar agora uma "Task< LoginResponseViewModel>"
     - No final do método cria uma instancia de "LoginResponseViewModel", passando os valores de:
 
     - AccessToken: que é o "encodedToken", o token completo e finalizado.
@@ -1745,7 +1745,7 @@ faz isso antes mesmo da validar a modelstate.
             var response = new LoginResponseViewModel
             {
                 AccessToken = encodedToken,
-                ExpiresIn = TimeSpan.FromHours(_appSettings.ExpiracaoHoras).TotalSeconds,
+                ExpiresIn = TimeSpan.FromHours(_ appSettings.ExpiracaoHoras).TotalSeconds,
                 UserToken = new UserTokenViewModel
                 {
                     Id = user.Id,
@@ -1760,7 +1760,7 @@ faz isso antes mesmo da validar a modelstate.
 
  - É retornado um objeto complexo.
 
-<blockquete>
+ <blockquete>
 
             {
                 "success": true,
@@ -1800,17 +1800,17 @@ faz isso antes mesmo da validar a modelstate.
                 }
             }
 
-</blockquete>
+ </blockquete>
 
 # Consumindo e testando a segurança da API via Angular
 
-- Aplica as "claims" e "Authorize" no controller de produto.
+ - Aplica as "claims" e "Authorize" no controller de produto.
 
-- Na aplicação em Angular configura o component de Login.
+ - Na aplicação em Angular configura o component de Login.
 
-### LoginComponent 
+ ### LoginComponent 
 
-- configurando:
+ - configurando:
 
     - Cria um formulario com o campo email e password.
     - Cria um método login, Com o if verifica se os dados são validos e se não estão sujos.
@@ -1842,9 +1842,9 @@ faz isso antes mesmo da validar a modelstate.
                     if (this.userForm.valid && this.userForm.dirty) {
 
                         // Transforma o objeto vazio, em um objeto do tipo user com o valores passado.
-                        let _user = Object.assign({}, this.user, this.userForm.value);
+                        let _ user = Object.assign({}, this.user, this.userForm.value);
 
-                        this.userService.login(_user)
+                        this.userService.login(_ user)
                         .subscribe(
                             result => { this.onSaveComplete(result) },
                             fail => { this.onError(fail) }
@@ -1859,9 +1859,9 @@ faz isso antes mesmo da validar a modelstate.
 
     </blockquete>
     
-### UserService 
+ ### UserService 
 
-- O serviço tem o método "login()" que retorna um Observable<User> e "persistirUserApp".
+ - O serviço tem o método "login()" que retorna um Observable<User> e "persistirUserApp".
 
     - login: a url que serve para a fazer a requisição, está dentro da propriedade "UrlServiceV1".
     - Essa propriedade fica no "BaseService", uma classe que é herdada.
@@ -1882,7 +1882,7 @@ faz isso antes mesmo da validar a modelstate.
 
                     constructor(private http: HttpClient) { super() }
 
-                    login(user: User): Observable<User> {
+                    login(user: User): Observable< User> {
 
                         return this.http
                             .post(this.UrlServiceV1 + 'entrar', user, super.ObterHeaderJson())
@@ -1901,7 +1901,7 @@ faz isso antes mesmo da validar a modelstate.
 
     </blockquete>
 
-- O método "super.ObterHeaderJson()" fica na classe "BaseService", ele retorna um objeto que tem a propriedade "headers".
+ - O método "super.ObterHeaderJson()" fica na classe "BaseService", ele retorna um objeto que tem a propriedade "headers".
   
     <blockquete>
 
@@ -1915,23 +1915,24 @@ faz isso antes mesmo da validar a modelstate.
 
     </blockquete>
 
-### MenuUserComponent.html
+ ### MenuUserComponent.html
 
-- Usa o component Angular "ngSwitch" para informar se o usuario está logado ou não.
-
+    - Usa o component Angular "ngSwitch" para informar se o usuario está logado ou não.
 
     <blockquete>
 
-                    <ul [ngSwitch]="userLogado()" class="nav navbar-nav navbar-right">
-                            <li *ngSwitchCase="false"><a  class="nav-link text-dark" [routerLink]="['/entrar']">Entrar</a></li>
-                            <li *ngSwitchCase="true"><a  class="nav-link text-dark">{{ saudacao }}</a></li>
-                    </ul>
+        < ul [ngSwitch]="userLogado()" class="nav navbar-nav navbar-right">
+
+            < li * ngSwitchCase="false">< a  class="nav-link text-dark" [ routerLink]="['/entrar']">Entrar</ a>< /li>
+            < li * ngSwitchCase="true">< a  class="nav-link text-dark">{{ saudacao }}</ a></ li>
+
+        </ ul>
 
     </blockquete>
 
-### MenuUserComponent.ts
+ ### MenuUserComponent.ts
 
-- Chama o servico que tem o método "obterUsuario" para verificar se tem usuario logado ou não. 
+ - Chama o servico que tem o método "obterUsuario" para verificar se tem usuario logado ou não. 
 
     <blockquete>
 
@@ -1952,11 +1953,10 @@ faz isso antes mesmo da validar a modelstate.
 
     </blockquete>
 
-### BaseService
+ ### BaseService
 
-- No serviço "BaseService" tem um método "obterUsuario" que pega dados do "localStorage" usnado o método "getItem".
-- É passado a chave do "localStorage" que tem o nome "'app.token'", esse resultado é convertido 
-usando o método "JSON.parse()"
+ - No serviço "BaseService" tem um método "obterUsuario" que pega dados do "localStorage" usnado o método "getItem".
+ - É passado a chave do "localStorage" que tem o nome "'app.token'", esse resultado é convertido usando o método "JSON.parse()"
 
     <blockquete>
 
@@ -1966,9 +1966,9 @@ usando o método "JSON.parse()"
 
     </blockquete>
 
-### Passando um HEADER em uma requisição do Angular.
+ ### Passando um HEADER em uma requisição do Angular.
 
-- É passado um método chamado "ObterAuthHeaderJson()", como 2° parametro na requisição.
+ - É passado um método chamado "ObterAuthHeaderJson()", como 2° parametro na requisição.
 
     <blockquete>
 
@@ -1997,7 +1997,7 @@ usando o método "JSON.parse()"
                         'MyClientCert': '',        // This is empty
                         'MyToken': ''   ,        // This is empty ,
                         'Authorization': `Bearer ${this.obterTokenUsuario()}`,
-                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Origin': ' * ',
                         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, PATCH, DELETE',
                         'Access-Control-Allow-Headers':'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers',
 
@@ -2016,100 +2016,98 @@ usando o método "JSON.parse()"
 
  - Na camada de negocio, cria uma interface chamada "IUser".
 
-<blockquete>
+    <blockquete>
 
-                public interface IUser
+        public interface IUser
+        {
+            /// < summary>Nome do usuario </ summary>
+            string Name { get;}
+
+            /// < summary>Obtenha o Id </ summary>
+            Guid GetUserId();
+
+            /// < summary>Obtenha o email </ summary>
+            string GetUserEmail();
+
+            /// < summary>Verifica se está autenticado </ summary>
+            bool IsAuthenticated();
+
+            /// < summary>Verifica se tem a Role informada </ summary>
+            bool IsInRole(string role);
+
+            /// < summary>Retorna uma lista de Claim </ summary>
+            IEnumerable< Claim> GetClaimsIdentity();
+        }
+
+    </blockquete>
+
+ - Na pasta de extenções na camada de Api, cria uma classe chamada "AspNetUser.cs" para implementar a interface.
+
+ <blockquete>
+
+        public class AspNetUser : IUser
+        {
+            private readonly IHttpContextAccessor _ accessor;
+
+            public AspNetUser(IHttpContextAccessor accessor)
+            {
+                _ accessor = accessor;
+            }
+
+            public string Name => _ accessor.HttpContext.User.Identity.Name;
+
+            public Guid GetUserId()
+            {
+                return IsAuthenticated() ? Guid.Parse(_ accessor.HttpContext.User.GetUserId()) : Guid.Empty;
+            }
+
+            public string GetUserEmail()
+            {
+                return IsAuthenticated() ? _ accessor.HttpContext.User.GetUserEmail() : "";
+            }
+
+            public bool IsAuthenticated()
+            {
+                return _ accessor.HttpContext.User.Identity.IsAuthenticated;
+            }
+
+            public bool IsInRole(string role)
+            {
+                return _ accessor.HttpContext.User.IsInRole(role);
+            }
+
+            public IEnumerable<Claim> GetClaimsIdentity()
+            {
+                return _ accessor.HttpContext.User.Claims;
+            }
+        }
+
+        public static class ClaimsPrincipalExtensions
+        {
+            public static string GetUserId(this ClaimsPrincipal principal)
+            {
+                if (principal == null)
                 {
-                    /// <summary>Nome do usuario </summary>
-                    string Name { get;}
-
-                    /// <summary>Obtenha o Id </summary>
-                    Guid GetUserId();
-
-                    /// <summary>Obtenha o email </summary>
-                    string GetUserEmail();
-
-                    /// <summary>Verifica se está autenticado </summary>
-                    bool IsAuthenticated();
-
-                    /// <summary>Verifica se tem a Role informada </summary>
-                    bool IsInRole(string role);
-
-                    /// <summary>Retorna uma lista de Claim </summary>
-                    IEnumerable<Claim> GetClaimsIdentity();
-
+                    throw new ArgumentException(nameof(principal));
                 }
 
-</blockquete>
+                var claim = principal.FindFirst(ClaimTypes.NameIdentifier);
+                return claim?.Value;
+            }
 
- - Na pasta de extenções na camada de Api, cria uma classe chamada "AspNetUser.cs" 
-para implementar a interface.
-
-<blockquete>
-
-                public class AspNetUser : IUser
+            public static string GetUserEmail(this ClaimsPrincipal principal)
+            {
+                if (principal == null)
                 {
-                    private readonly IHttpContextAccessor _accessor;
-
-                    public AspNetUser(IHttpContextAccessor accessor)
-                    {
-                        _accessor = accessor;
-                    }
-
-                    public string Name => _accessor.HttpContext.User.Identity.Name;
-
-                    public Guid GetUserId()
-                    {
-                        return IsAuthenticated() ? Guid.Parse(_accessor.HttpContext.User.GetUserId()) : Guid.Empty;
-                    }
-
-                    public string GetUserEmail()
-                    {
-                        return IsAuthenticated() ? _accessor.HttpContext.User.GetUserEmail() : "";
-                    }
-
-                    public bool IsAuthenticated()
-                    {
-                        return _accessor.HttpContext.User.Identity.IsAuthenticated;
-                    }
-
-                    public bool IsInRole(string role)
-                    {
-                        return _accessor.HttpContext.User.IsInRole(role);
-                    }
-
-                    public IEnumerable<Claim> GetClaimsIdentity()
-                    {
-                        return _accessor.HttpContext.User.Claims;
-                    }
+                    throw new ArgumentException(nameof(principal));
                 }
 
-                public static class ClaimsPrincipalExtensions
-                {
-                    public static string GetUserId(this ClaimsPrincipal principal)
-                    {
-                        if (principal == null)
-                        {
-                            throw new ArgumentException(nameof(principal));
-                        }
+                var claim = principal.FindFirst(ClaimTypes.Email);
+                return claim?.Value;
+            }
+        }
 
-                        var claim = principal.FindFirst(ClaimTypes.NameIdentifier);
-                        return claim?.Value;
-                    }
-
-                    public static string GetUserEmail(this ClaimsPrincipal principal)
-                    {
-                        if (principal == null)
-                        {
-                            throw new ArgumentException(nameof(principal));
-                        }
-
-                        var claim = principal.FindFirst(ClaimTypes.Email);
-                        return claim?.Value;
-                    }
-                }
-
-</blockquete>
+ </blockquete>
 
  - O método "ClaimsPrincipalExtensions" cria uma extenção dos métodos da classe "ClaimsPrincipal".
  - Essa extenção funciona passando um atriuto do tipo "ClaimsPrincipal", com o "this" antes. como parametro 
@@ -2134,18 +2132,18 @@ para implementar a interface.
 
     - GetClaimsIdentity(): retorna uma lista de Claim.
 
-### configurando a injelçao de dependencia.
+ ### configurando a injelçao de dependencia.
  - Configurando a dependencia na classe "DependencyInjectionConfig".
  - Usa o "AddSingleton" na interface "IHttpContextAccessor", para não confundir de usuario.
 
-<blockquete>
+    <blockquete>
 
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddScoped<IUser, AspNetUser>();  
+            services.AddSingleton< IHttpContextAccessor, HttpContextAccessor>();
+            services.AddScoped< IUser, AspNetUser>();  
 
-</blockquete>
+    </blockquete>
 
-### configurando na mainController.
+ ### configurando na mainController.
 
  - Na classe "MainController" o controller que todos herdam, é criado uma propriedade chamada "AppUser",
  do tipo "IUser", aonde recebe uma injeção de dependencia de "IUser".
@@ -2154,14 +2152,14 @@ para implementar a interface.
  - Cria uma propriedade chamada "UsuarioId" que recebe o id do usuario caso ele esteja logado.
  - Essas propriedade ajuda na logica de programar, caso seja preciso.
   
-<blockquete>
+ <blockquete>
 
                     protected Guid UsuarioId { get; set; }
                     protected bool UsuarioAutenticado { get; set; }
 
                     protected MainController(INotificador notificador, IUser appUser)
                     {
-                        _notificador = notificador;
+                        _ notificador = notificador;
                         // Propriedade usada nas controller para ter facil acesso.
                         AppUser = appUser;
             
@@ -2172,18 +2170,16 @@ para implementar a interface.
                         }
                     }
 
-</blockquete>
+ </blockquete>
 
  - Toda controller que herda a MainController, deve injetar o "IUser" e por no ": base()" que fica no método construtor.
 
-### Manipulando o usuario no serviço do produto. (camada de negocio).
+ ### Manipulando o usuario no serviço do produto. (camada de negocio).
 
-- Faz uma injeção de dependencia de "IUser", no construtor do serviço.
-- Usa a propriedade e chama o método "GetUserId()", para obter o id do usuario,
- e atribui em uma variavel.
+ - Faz uma injeção de dependencia de "IUser", no construtor do serviço.
+ - Usa a propriedade e chama o método "GetUserId()", para obter o id do usuario, e atribui em uma variavel.
 
- - [Ferramenta do VS] quando está debugando pode usar a  ferramentachamada "QuickWatch",
-para explorar outros valores dentro de uma propriedade que é um objeto por exemplo.
+ - [Ferramenta do VS] quando está debugando pode usar a  ferramentachamada "QuickWatch", para explorar outros valores dentro de uma propriedade que é um objeto por exemplo.
 
 # Trabalhando com HTTPS
 

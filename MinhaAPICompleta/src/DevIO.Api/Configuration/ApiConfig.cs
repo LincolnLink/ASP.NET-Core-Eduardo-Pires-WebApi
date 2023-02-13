@@ -45,19 +45,21 @@ namespace DevIO.Api.Configuration
             services.AddCors(options =>
             {
                 options.AddPolicy("Development",
-                   builder => builder
+                    builder =>
+                        builder
                         .AllowAnyOrigin()
                         .AllowAnyMethod()
-                        .AllowAnyHeader());                
-                
+                        .AllowAnyHeader());
+
+
                 options.AddPolicy("Production",
                     builder =>
                         builder
-                         .WithMethods("GET")
-                         .WithOrigins("http://localhost:4200", "https://localhost:4200")
-                         .SetIsOriginAllowedToAllowWildcardSubdomains()
-                         //.WithHeaders(HeaderNames.ContentType, "x-custom-header")
-                         .AllowAnyHeader()); 
+                            .WithMethods("GET")
+                            .WithOrigins("http://desenvolvedor.io")
+                            .SetIsOriginAllowedToAllowWildcardSubdomains()
+                            //.WithHeaders(HeaderNames.ContentType, "x-custom-header")
+                            .AllowAnyHeader());
             });
 
             //services.AddHealthChecksUI();
@@ -68,9 +70,6 @@ namespace DevIO.Api.Configuration
 
         public static IApplicationBuilder UseApiConfig(this IApplicationBuilder app, IWebHostEnvironment env)
         {
-
-            app.UseRouting();
-
             if (env.IsDevelopment())
             {
                 app.UseCors("Development");
@@ -82,15 +81,16 @@ namespace DevIO.Api.Configuration
                 app.UseHsts();
             }
 
-            //app.UseMiddleware<ExceptionMiddleware>();
-            //app.UseHttpsRedirection();                      
+            app.UseMiddleware<ExceptionMiddleware>();
 
-            //app.UseCors("Development");
+            app.UseHttpsRedirection();
+
+            app.UseRouting();
 
             app.UseAuthentication();
             app.UseAuthorization();
 
-            //app.UseStaticFiles();
+            app.UseStaticFiles();
 
             app.UseEndpoints(endpoints =>
             {

@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace DevIO.Api.Controllers
 {
-    [Authorize]
+    [Authorize]//TESTE DO REVERT
     [Route("api/produtos")]    
     public class ProdutosController : MainController
     {        

@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 
 namespace DevIO.Api.Controllers
 {
+    //comentario 01
     [Authorize]
     [Route("api/produtos")]    
     public class ProdutosController : MainController

@@ -23,7 +23,7 @@ namespace DevIO.Api.Controllers
         private readonly IMapper _mapper;
         private readonly IProdutoService _produtoService;
         private readonly IProdutoRepository _produtoRepository;
-
+        //comentario 02
         public ProdutosController(
             IMapper mapper, IUser user,
             INotificador notificador,

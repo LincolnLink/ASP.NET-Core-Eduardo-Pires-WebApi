@@ -18,6 +18,7 @@ namespace DevIO.Api.Controllers
     //comentario 01
     //comentario 02
     //comentario 03
+    //comentario 04
     [Authorize]
     [Route("api/produtos")]    
     public class ProdutosController : MainController

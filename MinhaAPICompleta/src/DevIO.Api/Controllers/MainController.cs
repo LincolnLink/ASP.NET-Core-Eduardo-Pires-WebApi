@@ -80,7 +80,7 @@ namespace DevIO.Api.Controllers
 
         /// <summary>
         /// Ele notifica o erro da modelState invalida.
-        /// </summary>        
+        /// </summary>
         protected void NotificarErroModelInvalida(ModelStateDictionary modelState)
         {
             // Pega apenas os erros.

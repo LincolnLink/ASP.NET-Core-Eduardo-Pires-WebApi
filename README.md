@@ -1068,7 +1068,11 @@ faz isso antes mesmo da validar a modelstate.
 
 </blockquete>
 
- - TODO (por a explicação do modo de carregar imagens pesadas)!!!
+ - Pesquisar uma forma do Angular aceitar o tipo "IFormFile".
+
+ - Usar o dataanotation no endpoint, "[RequestSizeLimit(40000000)]", para limitar o tamanho da imagem enviada.
+
+ - Se usa o "[DisableRequestSizeLimit]" para desativar o limite.
 
 # Concluindo a modelagem da API
 

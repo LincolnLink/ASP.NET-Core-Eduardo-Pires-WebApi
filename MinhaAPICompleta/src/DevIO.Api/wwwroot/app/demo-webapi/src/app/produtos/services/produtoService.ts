@@ -13,7 +13,7 @@ export class ProdutoService extends BaseService {
 
     obterTodos(): Observable<Produto[]> {
         return this.http
-            .get<Produto[]>(this.UrlServiceV1 + "produtos/Adicionar", super.ObterAuthHeaderJson())
+            .get<Produto[]>(this.UrlServiceV1 + 'produtos/ObterTodos', super.ObterAuthHeaderJson())
             .pipe(
                 catchError(this.serviceError));
     }
@@ -21,7 +21,7 @@ export class ProdutoService extends BaseService {
     registrarProdutoAlternativo(produto: FormData): Observable<Produto> {
 
         return this.http
-            .post(this.UrlServiceV1 + 'produtos/adicionar', produto, super.ObterHeaderFormData())
+            .post(this.UrlServiceV1 + 'produtos/AdicionarAlternativo', produto, super.ObterHeaderFormData())
             .pipe(
                 map(super.extractData),
                 catchError(super.serviceError)
@@ -31,7 +31,7 @@ export class ProdutoService extends BaseService {
     registrarProduto(produto: Produto): Observable<Produto> {
 
         return this.http
-            .post(this.UrlServiceV1 + 'produtos', produto, super.ObterAuthHeaderJson())
+            .post(this.UrlServiceV1 + 'produtos/Adicionar', produto, super.ObterAuthHeaderJson())
             .pipe(
                 map(super.extractData),
                 catchError(super.serviceError)

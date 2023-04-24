@@ -8,6 +8,7 @@ import { Produto } from '../models/Produto';
 import { Fornecedor } from '../models/Fornecedor';
 import { ProdutoService } from '../services/produtoService';
 
+
 @Component({
   selector: 'app-cadastro',
   templateUrl: './cadastro.component.html'
@@ -28,8 +29,10 @@ export class CadastroComponent implements OnInit {
 
     this.produtoService.obterFornecedores()
       .subscribe(
-        fornecedores => this.fornecedores = fornecedores,
-        fail => this.errors = fail.error.errors
+        {
+          next:  fornecedores => this.fornecedores = fornecedores,
+          error: fail => this.errors = fail.error.errors
+        }
       );
 
     this.imagemForm = new FormData();
@@ -54,13 +57,15 @@ export class CadastroComponent implements OnInit {
 
       let produtoForm = Object.assign({}, this.produto, this.produtoForm.value);
       
-      produtoForm.ativo = this.produtoForm.get('ativo').value
-      produtoForm.valor = parseFloat(this.produtoForm.get('valor').value)
+      produtoForm.ativo = this.produtoForm.get('ativo')?.value
+      produtoForm.valor = parseFloat(this.produtoForm.get('valor')?.value)
 
       this.produtoHandle(produtoForm)
         .subscribe(
-          result => { this.onSaveComplete(result) },
-          fail => { this.onError(fail) }
+          {
+            next: result => { this.onSaveComplete(result) },
+            error:  fail => { this.onError(fail) }
+          }
         );
     }
   }
@@ -77,7 +82,7 @@ export class CadastroComponent implements OnInit {
 
     let formdata = new FormData();
     produto.imagem = this.imagemNome;
-    produto.imagemUpload = null;
+    produto.imagemUpload = '';
 
     formdata.append('produto', JSON.stringify(produto));
     formdata.append('ImagemUpload', this.imagemForm, this.imagemNome);

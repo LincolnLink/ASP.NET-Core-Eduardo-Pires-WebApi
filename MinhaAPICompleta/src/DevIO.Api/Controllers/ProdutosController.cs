@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace DevIO.Api.Controllers
 {
-    //comentario 01    
+
     [Authorize]
     [Route("api/produtos")]    
     public class ProdutosController : MainController
@@ -29,7 +29,7 @@ namespace DevIO.Api.Controllers
             INotificador notificador,
             IProdutoService produtoServico,
             IProdutoRepository produtoRepository) : base(notificador, user)
-        {//comentario 03
+        {
             _mapper = mapper;
             _produtoService = produtoServico;
             _produtoRepository = produtoRepository;
@@ -37,28 +37,34 @@ namespace DevIO.Api.Controllers
         }
 
         
-        [HttpGet]
+        [HttpGet("ObterTodos")]
         public async Task<ActionResult<IEnumerable<ProdutoViewModel>>> ObterTodos()
         {
             var produtos = _mapper.Map<IEnumerable<ProdutoViewModel>>(await _produtoRepository.ObterProdutosFornecedores());
             return Ok(produtos);
         }
 
+
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<ProdutoViewModel>> ObterPorId(Guid id)
         {
-            // Converte o o model produto para produtoViewModel.
-            // var produto = await ObterProdutosFornecedor(id);
+            // Converte o model produto para produtoViewModel.           
             var produtoViewModel = await ObterProduto(id);
-
 
             if (produtoViewModel == null) return NotFound(); //404 não encontrado.
 
-            return Ok(produtoViewModel); //200 Ok
+            return Ok(produtoViewModel);
         }
 
+
+        private async Task<ProdutoViewModel> ObterProduto(Guid id)
+        {
+            return _mapper.Map<ProdutoViewModel>(await _produtoRepository.ObterProdutoFornecedor(id));
+        }
+
+
         [ClaimsAuthorize("Produto", "Adicionar")]
-        [HttpPost]
+        [HttpPost("Adicionar")]
         public async Task<ActionResult<ProdutoViewModel>> Adicionar(ProdutoViewModel produtoViewModel)
         {
             if (!ModelState.IsValid) return CustomResponse(ModelState);
@@ -117,8 +123,9 @@ namespace DevIO.Api.Controllers
             return CustomResponse(produtoViewModel);
         }
 
+
         [ClaimsAuthorize("Produto", "Excluir")]
-        [HttpDelete("{id:guid}")]
+        [HttpDelete("{id:guid}")] //converte para guid
         public async Task<ActionResult<ProdutoViewModel>> Excluir(Guid id)
         {
             var produtoViewModel = await ObterProduto(id);
@@ -131,27 +138,17 @@ namespace DevIO.Api.Controllers
             // Return Ok(produtoViewModel);
             return CustomResponse(produtoViewModel);
         }
-
-        private async Task<ProdutoViewModel> ObterProduto(Guid id)
-        {
-            return _mapper.Map<ProdutoViewModel>(await _produtoRepository.ObterProdutoFornecedor(id));
-        }
-
-        /// <summary>
-        /// Método que faz upload de imagem.
-        /// </summary>
-        /// <param name="arquivo">imagem</param>
-        /// <param name="imgNome">nome da imagem</param>
-        /// <returns></returns>
+        
+        
         private bool UploadArquivo(string arquivo, string imgNome)
         {          
             // Se o arquivo estiver null ou vazio.
             if(string.IsNullOrEmpty(arquivo))
             {
+                //Pode notificar ou adicionar na modelstate, caso não tenha o método de notificação.
                 // Adiciona o erro na modelState ou notifica o erro.
                 //ModelState.AddModelError(key: string.Empty, errorMessage: "Forneça uma imagem para este produto!");
 
-                //Pode notificar ou adicionar na modelstate, caso não tenha o método de notificação.
                 NotificarErro(mensagem: "Forneça uma imagem para este produto!");
                 return false;
             }
@@ -160,7 +157,7 @@ namespace DevIO.Api.Controllers
             var imageDataByteArray = Convert.FromBase64String(arquivo);
 
             // Pega o diretorio mais o nome da imagem que foi passada.
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Angular/src/assets", imgNome);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/app/demo-webapi/src/assets", imgNome);
 
             // Verifica se a imgaem já existe
             if (System.IO.File.Exists(filePath))
@@ -180,10 +177,11 @@ namespace DevIO.Api.Controllers
 
         }
 
+
         #region UploadAlternativo
 
         [ClaimsAuthorize("Produto", "Adicionar")]
-        [HttpPost("Adicionar")]
+        [HttpPost("AdicionarAlternativo")]
         public async Task<ActionResult<ProdutoViewModel>> AdicionarAlternativo(ProdutoImagemViewModel produtoViewModel)
         {
             if (!ModelState.IsValid) return CustomResponse(ModelState);
@@ -222,7 +220,7 @@ namespace DevIO.Api.Controllers
             }            
             //false||false
 
-            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Angular/src/assets", imgPrefixo + arquivo.FileName);
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/app/demo-webapi/src/assets", imgPrefixo + arquivo.FileName);
 
             // Verifica se já tem.
             if (System.IO.File.Exists(path))
@@ -230,7 +228,7 @@ namespace DevIO.Api.Controllers
                 NotificarErro("Já existe um arquivo com este nome!");
                 return false;
             }
-            // Copiar para a maquina, cria no path
+            // Copiar para a maquina(servidor), cria no path
             using (var stream = new FileStream(path, FileMode.Create))
             {
                 await arquivo.CopyToAsync(stream);

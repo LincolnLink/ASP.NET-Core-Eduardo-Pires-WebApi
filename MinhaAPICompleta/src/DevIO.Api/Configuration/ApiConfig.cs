@@ -21,19 +21,19 @@ namespace DevIO.Api.Configuration
 
             services.AddControllers();//.AddNewtonsoftJson();
 
-            /*
+            
             services.AddApiVersioning(options =>
             {
                 options.AssumeDefaultVersionWhenUnspecified = true;
                 options.DefaultApiVersion = new ApiVersion(1, 0);
                 options.ReportApiVersions = true;
             });
-
+            
             services.AddVersionedApiExplorer(options =>
             {
                 options.GroupNameFormat = "'v'VVV";
                 options.SubstituteApiVersionInUrl = true;
-            });*/
+            });
 
             // Para personalizar a modelState.
             services.Configure<ApiBehaviorOptions>(options =>
@@ -56,7 +56,7 @@ namespace DevIO.Api.Configuration
                     builder =>
                         builder
                             .WithMethods("GET")
-                            .WithOrigins("http://desenvolvedor.io")
+                            .WithOrigins("http://desenvolvedor.io") //apenas nesse site.
                             .SetIsOriginAllowedToAllowWildcardSubdomains()
                             //.WithHeaders(HeaderNames.ContentType, "x-custom-header")
                             .AllowAnyHeader());
@@ -74,6 +74,7 @@ namespace DevIO.Api.Configuration
             {
                 app.UseCors("Development");
                 app.UseDeveloperExceptionPage();
+                //app.UseHsts();
             }
             else
             {

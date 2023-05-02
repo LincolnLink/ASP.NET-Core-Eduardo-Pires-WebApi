@@ -13,7 +13,8 @@ using DevIO.Api.Extensions;
 namespace DevIO.Api.Controllers
 {
     [Authorize]
-    [Route("api/fornecedores")]    
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/fornecedores")] //[Route("api/fornecedores")]
     public class FornecedoresController : MainController
     {
         private readonly IMapper _mapper;
@@ -33,7 +34,8 @@ namespace DevIO.Api.Controllers
             _enderecoRepository = enderecoRepository;
             _fornecedorRepository = fornecedorRepository;
         }
-                
+
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FornecedorViewModel>>> ObterTodos()
         {

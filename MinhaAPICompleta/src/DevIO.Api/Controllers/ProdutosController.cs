@@ -16,8 +16,9 @@ using System.Threading.Tasks;
 namespace DevIO.Api.Controllers
 {
 
-    [Authorize]
-    [Route("api/produtos")]    
+    [Authorize]    
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/produtos")]//[Route("api/produtos")]
     public class ProdutosController : MainController
     {        
         private readonly IMapper _mapper;

@@ -17,8 +17,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace DevIO.Api.Controllers
 {
-    //[Route("api/v{version:apiVersion}")]      
-    [Route("api")]
+    [Route("api/v{version:apiVersion}")]//[Route("api")]
     public class AuthController : MainController
     {
         private readonly ILogger _logger;

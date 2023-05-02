@@ -1010,7 +1010,7 @@ faz isso antes mesmo da validar a modelstate.
  - Chama o método "UploadArquivoAlternativo", faz o tratamento para ver se existe ou se tem um tamanho.
  - salva o nome na propriedade "Imagem".
  
-<blockquete>
+ <blockquete>
 
             //[ClaimsAuthorize("Produto", "Adicionar")]
             [HttpPost("Adicionar")]
@@ -1030,11 +1030,11 @@ faz isso antes mesmo da validar a modelstate.
                 return CustomResponse(produtoViewModel);
             }
 
-</blockquete>
+ </blockquete>
 
  - Método que sobe imagem Alternativo.
 
-<blockquete>
+ <blockquete>
 
             //[DisableRequestSizeLimit]
             [RequestSizeLimit(40000000)]
@@ -1066,19 +1066,114 @@ faz isso antes mesmo da validar a modelstate.
             }
 
 
-</blockquete>
+ </blockquete>
 
  - Pesquisar uma forma do Angular aceitar o tipo "IFormFile".
 
- - Usar o dataanotation no endpoint, "[RequestSizeLimit(40000000)]", para limitar o tamanho da imagem enviada.
+ - Usar o dataanotation no endpoint, "[RequestSizeLimit(40000000)]", para limitar o tamanho da imagem/arquivos enviada.
 
  - Se usa o "[DisableRequestSizeLimit]" para desativar o limite.
+
+ - solução alternativa que aceita JSON e IFormFile(não é da microsoft):
+
+ - TODO: se aprofundar mais depois.(minuto 22 do video)
+
+ - Cria um arquivo na pasta de extenção, com a configuração.
+
+ <blockquete>     
+
+            namespace DevIO.Api.Extensions
+            {
+                // Binder personalizado para envio de IFormFile e ViewModel dentro de um FormData compatível com .NET Core 3.1 ou superior (system.text.json)
+                public class ProdutoModelBinder : IModelBinder
+                {
+                    public Task BindModelAsync(ModelBindingContext bindingContext)
+                    {
+                        if (bindingContext == null)
+                        {
+                            throw new ArgumentNullException(nameof(bindingContext));
+                        }
+
+                        var serializeOptions = new JsonSerializerOptions
+                        {
+                            WriteIndented = true,
+                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                            PropertyNameCaseInsensitive = true
+                        };
+
+                        var produtoImagemViewModel = JsonSerializer.Deserialize<ProdutoImagemViewModel>(bindingContext.ValueProvider.GetValue("produto").FirstOrDefault(), serializeOptions);
+                        produtoImagemViewModel.ImagemUpload = bindingContext.ActionContext.HttpContext.Request.Form.Files.FirstOrDefault();
+
+                        bindingContext.Result = ModelBindingResult.Success(produtoImagemViewModel);
+                        return Task.CompletedTask;
+                    }
+                }
+            }
+
+ </blockquete>
+
+ - Depois disso tipa a model com o novo tipo, que da suporte ao JSON com IFormFile!
+
+ <blockquete>
+     
+                    namespace DevIO.Api.ViewModels
+                    {
+                    // Binder personalizado para envio de IFormFile e ViewModel dentro de um FormData compatível com .NET Core 3.1 ou superior (system.text.json)
+                    [ModelBinder(BinderType = typeof(ProdutoModelBinder))]
+                    public class ProdutoImagemViewModel
+                    {
+                        [Key]
+                        public Guid Id { get; set; }
+
+                        [Required(ErrorMessage = "O campo {0} é obrigatório")]
+
+                        public Guid FornecedorId { get; set; }
+
+                        [Required(ErrorMessage = "O campo {0} é obrigatório")]
+                        [StringLength(200, ErrorMessage = "O campo {0} precisa ter entre {2} e {1} caracteres", MinimumLength = 2)]
+                        public string Nome { get; set; }
+
+                        [Required(ErrorMessage = "O campo {0} é obrigatório")]
+                        [StringLength(1000, ErrorMessage = "O campo {0} precisa ter entre {2} e {1} caracteres", MinimumLength = 2)]
+                        public string Descricao { get; set; }
+
+                        // Evita o erro de conversão de string vazia para IFormFile
+                        [JsonIgnore]        
+                        public IFormFile ImagemUpload { get; set; }
+
+                        public string Imagem { get; set; }
+
+                        [Required(ErrorMessage = "O campo {0} é obrigatório")]
+                        public decimal Valor { get; set; }
+
+                        [ScaffoldColumn(false)]
+                        public DateTime DataCadastro { get; set; }
+
+                        public bool Ativo { get; set; }
+
+                        [ScaffoldColumn(false)]
+                        public string NomeFornecedor { get; set; }
+                    }
+                }
+
+ </blockquete>
+
+ - na configuração do "AutomapperConfig" adicionaessa linha:
+
+ <blockquete> 
+            CreateMap< ProdutoImagemViewModel, Produto>().ReverseMap(); 
+ </blockquete>
+
+ - Testar depois no Angular.
+
+
 
 # Concluindo a modelagem da API
 
  - Cria o método atualizar. 
 
  - Cria um classe chamada "ApiConfig" nela isola algumas configrações da classe StratUp.
+
 
 # Autenticação
 
@@ -2187,6 +2282,7 @@ faz isso antes mesmo da validar a modelstate.
 
 # Trabalhando com HTTPS
 
+ - Configurar no "UseApiConfig" que fica no Startup.
  - Devemos configurar na StartUp com o uso do "Hsts" para informar que ele só aceita o https.
  - Mas devemos usar o "app.UseHttpsRedirection();" para redirecionar o usuario ao https.
  - Testar quando a aplicação estiver no ar (em produção).
@@ -2195,22 +2291,95 @@ faz isso antes mesmo da validar a modelstate.
 
  - O CORS ele relaxa a segurança do sistema, para o front end fazer requisições.
 
+ - O CORS é aplicado pelo browser, ele bloqueia automatico.
+
  - options.AddDefaultPolicy(): define uma politica padrão.
  - AllowCredentials(): não tem muita efetividade.
  
  - [DisableCors] : desativa o cors na controller, assim deixa mais seguro, nada sobreescreve ele, no asp.net core 2.2.
  - preciso fazer alguns testes.
 
+ <blockquete>
 
 
-<blockquete>
+ </blockquete>
 
+# Versionamento e Documentação da API.
 
-</blockquete>
+ - Ajuda a ter as duas verções da API, evitando bug ou erros de quem a usa.
 
+ - Instala o pacote: 
 
+ <blockquete> Microsoft.AspNetCore.Mvc.Versioning </blockquete>
 
+ - Instala um segundo pacote: 
 
+ <blockquete> Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer </blockquete>
 
+ - No arquivo ApiConfig, implementa o codigo de versionamento.
 
+ <blockquete>
 
+            services.AddApiVersioning(options =>
+            {
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.DefaultApiVersion = new ApiVersion(1, 0);
+                options.ReportApiVersions = true;
+            });
+
+ </blockquete>
+
+ - AssumeDefaultVersionWhenUnspecified : assuma a versão defaut.
+ - DefaultApiVersion: defina a maior versão e a menor.
+ - ReportApiVersions: Quando consome a API informa se está absoleta ou não.
+ 
+ <blockquete>
+
+            services.AddVersionedApiExplorer(options =>
+            {
+                options.GroupNameFormat = "'v'VVV";
+                options.SubstituteApiVersionInUrl = true;
+            });
+
+ </blockquete>
+
+ - GroupNameFormat: agrupamento da versão.
+ - SubstituteApiVersionInUrl: Seta ou pega um valor, que pode ser subistituido pelas rotas,
+ para aplicação não ficar com problema de roteamento.
+
+ - Configuração nos Controllers.
+
+ <blockquete>
+        [ApiVersion("1.0")]
+        [Route("api/v{version:apiVersion}/produtos")]
+
+ </blockquete>
+
+ <blockquete>
+
+        [ApiVersion("1.0")]
+        [Route("api/v{version:apiVersion}/fornecedores")]
+
+ </blockquete>
+
+ - version: o aspnet core ja entende que o tipo "apiVersion" é trocado pela verção.
+ 
+ - A rota da requisição muda.
+
+ <blockquete>
+
+        https://localhost:44320/api/v1/fornecedores
+
+ </blockquete>
+
+ - Declarar que é antigo.
+
+ <blockquete>
+
+        [ApiVersion("2.0")]
+        [ApiVersion("1.0", Deprecated = true)] // usa esse termo para indicar que a verção é antiga.
+        [Route("api/v{version:apiVersion}/fornecedores")]
+
+ </blockquete>
+ 
+ - adiciona uma pasta  chamada V1 e outra V2 para quardar as controlers

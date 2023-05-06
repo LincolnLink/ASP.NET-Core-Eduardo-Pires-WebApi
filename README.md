@@ -2383,3 +2383,142 @@ faz isso antes mesmo da validar a modelstate.
  </blockquete>
  
  - adiciona uma pasta  chamada V1 e outra V2 para quardar as controlers
+
+# Swagger - modo simples
+
+ - Documentando a API.
+
+ - Abra o Package Manager Console, e digita o comando que instala o Swagger.
+
+ <blockquete>
+
+        Install-Package Swashbuckle.AspNetCore
+
+ </blockquete> 
+
+ - Configura o StartUp, no metodo ConfigureServices", botando a v1 como padrão.
+   
+ <blockquete>
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc(name: "v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+            }); 
+
+ </blockquete> 
+
+ - Depois bota a configuração no metodo "Configure"
+
+ <blockquete>
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint(url: "/swagger/v1/swagger.json", name:"My API V1");
+            });
+
+ </blockquete> 
+
+# Swagger - modo Complexo.
+
+ - Cria um arquivo chamada "SwaggerConfig" na pasta configurações, dentro dela vai ser criada 4 classes!
+
+ - A primeira classe se chama "ConfigureSwaggerOptions"
+
+ - Essa classe, 
+
+ <blockquete>
+
+        public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
+        {
+                readonly IApiVersionDescriptionProvider provider;
+
+                public ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider) => this.provider = provider;
+
+                public void Configure(SwaggerGenOptions options)
+                {
+                    foreach (var description in provider.ApiVersionDescriptions)
+                    {
+                        options.SwaggerDoc(description.GroupName, CreateInfoForApiVersion(description));
+                    }
+                }
+
+                static OpenApiInfo CreateInfoForApiVersion(ApiVersionDescription description)
+                {
+                    var info = new OpenApiInfo()
+                    {
+                        Title = "API - desenvolvedor.io",
+                        Version = description.ApiVersion.ToString(),
+                        Description = "Esta API faz parte do curso REST com ASP.NET Core WebAPI.",
+                        Contact = new OpenApiContact() { Name = "Eduardo Pires", Email = "contato@desenvolvedor.io" },
+                        License = new OpenApiLicense() { Name = "MIT", Url = new Uri("https://opensource.org/licenses/MIT") }
+                    };
+
+                    if (description.IsDeprecated)
+                    {
+                        info.Description += " Esta versão está obsoleta!";
+                    }
+
+                    return info;
+                }
+         }
+
+ </blockquete> 
+ 
+ -
+
+ <blockquete>
+ </blockquete> 
+
+
+ -
+
+ <blockquete>
+ </blockquete>
+
+ -
+
+ <blockquete>
+ </blockquete>
+
+ -
+
+ <blockquete>
+ </blockquete>
+
+ -
+
+ <blockquete>
+ </blockquete>
+
+ -
+
+ <blockquete>
+ </blockquete>
+
+
+
+ -
+
+ <blockquete>
+ </blockquete>
+
+ -
+
+ <blockquete>
+ </blockquete>
+
+ -
+
+ <blockquete>
+ </blockquete>
+
+ -
+
+ <blockquete>
+ </blockquete>
+
+ -
+
+ <blockquete>
+ </blockquete>

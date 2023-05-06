@@ -13,7 +13,7 @@ namespace DevIO.Api.Controllers
     /// <summary>
     /// Classe Base das controllers, Class abstrata so pode ser herdada.
     /// Validação de notificação de erro, ModelState e Operações de Negocios.
-    /// </summary>    
+    /// </summary>
     [ApiController]
     public abstract class MainController : ControllerBase
     {

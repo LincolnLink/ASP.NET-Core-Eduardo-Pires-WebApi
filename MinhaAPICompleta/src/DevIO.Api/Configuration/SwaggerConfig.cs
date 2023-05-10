@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -107,6 +108,9 @@ namespace DevIO.Api.Configuration
             {
                 return;
             }
+            //codigo alternativo para deixar os endpoint antigo de cor cinza
+            var apiVersionMetadata = context.ApiDescription.ActionDescriptor.EndpointMetadata.OfType<ApiVersionAttribute>().FirstOrDefault(); 
+            operation.Deprecated = apiVersionMetadata?.Deprecated ?? false;
 
             foreach (var parameter in operation.Parameters)
             {
@@ -116,7 +120,7 @@ namespace DevIO.Api.Configuration
 
                 var routeInfo = description.RouteInfo;
 
-                operation.Deprecated = OpenApiOperation.DeprecatedDefault;
+                //operation.Deprecated = OpenApiOperation.DeprecatedDefault;
 
                 if (parameter.Description == null)
                 {

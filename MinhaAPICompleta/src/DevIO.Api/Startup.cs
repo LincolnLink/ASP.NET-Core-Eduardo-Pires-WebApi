@@ -2,6 +2,7 @@ using DevIO.Api.Configuration;
 using DevIO.Data.Context;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,13 +34,13 @@ namespace DevIO.Api
             services.AddAutoMapper(typeof(Startup)); 
 
             services.AddApiConfig();
+                    
+            services.AddSwaggerConfig();
 
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc(name: "v1", new OpenApiInfo { Title = "My API", Version = "v1" });
-            });
-
-            //services.AddSwaggerConfig();
+            //services.AddSwaggerGen(c =>
+            //{
+            //    c.SwaggerDoc(name: "v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+            //});
 
             //services.AddLoggingConfig(Configuration);
 
@@ -48,11 +49,11 @@ namespace DevIO.Api
         }
 
         
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {  
             app.UseApiConfig(env);
 
-            //app.UseSwaggerConfig(provider);
+            app.UseSwaggerConfig(provider);
 
             //app.UseLoggingConfiguration();
         }

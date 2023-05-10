@@ -2425,7 +2425,19 @@ faz isso antes mesmo da validar a modelstate.
 
  - A primeira classe se chama "ConfigureSwaggerOptions"
 
- - Essa classe, 
+ - IConfigureOptions<SwaggerGenOptions>: estende a classe, estende a configuração. 
+
+ - IApiVersionDescriptionProvider: interface do pacote de versionamento.
+
+ - ConfigureSwaggerOptions: recebe um provider.
+
+ - Configure: faz um foreach para pegar todas as verções da API, e adiciona um doc para cada uma delas.
+
+ - CreateInfoForApiVersion: cria uma documentação minima da API.
+
+ - O if serve para verificar se a versão está absoleta, para adicionar uma descrição extra.
+
+ - 
 
  <blockquete>
 
@@ -2465,31 +2477,149 @@ faz isso antes mesmo da validar a modelstate.
 
  </blockquete> 
  
- -
+ - Configurando a Injeção de dependencia, no arquivo "DependencyInjectionConfig", 
 
  <blockquete>
+        services.AddTransient< IConfigureOptions< SwaggerGenOptions>, ConfigureSwaggerOptions>();
  </blockquete> 
 
+ - Remove o "AddSwaggerGen" do arquivo Startup!
 
- -
-
- <blockquete>
- </blockquete>
-
- -
+ - Cria uma classe chamada "SwaggerConfig" no arquivo "SwaggerConfig", com o metodo "AddSwaggerConfig", que é chamado na Startup.
 
  <blockquete>
+
+            public static class SwaggerConfig
+            {
+                public static IServiceCollection AddSwaggerConfig(this IServiceCollection services)
+                {
+                    services.AddSwaggerGen(c =>
+                    {
+                        c.OperationFilter< SwaggerDefaultValues>();
+
+                        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                        {
+                            Description = "Insira o token JWT desta maneira: Bearer {seu token}",
+                            Name = "Authorization",
+                            Scheme = "Bearer",
+                            BearerFormat = "JWT",
+                            In = ParameterLocation.Header,
+                            Type = SecuritySchemeType.ApiKey
+                        });
+
+                        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                        {
+                            {
+                                new OpenApiSecurityScheme
+                                {
+                                    Reference = new OpenApiReference
+                                    {
+                                        Type = ReferenceType.SecurityScheme,
+                                        Id = "Bearer"
+                                    }
+                                },
+                                new string[] {}
+                            }
+                        });
+                    });
+
+                    return services;
+                }
+
+                public static IApplicationBuilder UseSwaggerConfig(this IApplicationBuilder app, IApiVersionDescriptionProvider provider)
+                {
+                    //app.UseMiddleware< SwaggerAuthorizedMiddleware>();
+                    app.UseSwagger();
+                    app.UseSwaggerUI(
+                        options =>
+                        {
+                            foreach (var description in provider.ApiVersionDescriptions)
+                            {
+                                options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
+                            }
+                        });
+                    return app;
+                }
+            }
+
+
  </blockquete>
 
- -
+ - No método "AddSwaggerGen" que é uma estenção da service, cria uma configuração "c.OperationFilter< SwaggerDefaultValues>();".
+
+ - Cria a classe "SwaggerDefaultValues" 
+
+ - Ela implementa configuração que o Eduardo pires criou.
+
+ - OperationFilter: serve para aceitar classes personalizadas. 
 
  <blockquete>
+
+    public class SwaggerDefaultValues : IOperationFilter
+    {
+        public void Apply(OpenApiOperation operation, OperationFilterContext context)
+        {
+            if (operation.Parameters == null)
+            {
+                return;
+            }
+
+            foreach (var parameter in operation.Parameters)
+            {
+                var description = context.ApiDescription
+                    .ParameterDescriptions
+                    .First(p => p.Name == parameter.Name);
+
+                var routeInfo = description.RouteInfo;
+
+                operation.Deprecated = OpenApiOperation.DeprecatedDefault;
+
+                if (parameter.Description == null)
+                {
+                    parameter.Description = description.ModelMetadata?.Description;
+                }
+
+                if (routeInfo == null)
+                {
+                    continue;
+                }
+
+                if (parameter.In != ParameterLocation.Path && parameter.Schema.Default == null)
+                {
+                    parameter.Schema.Default = new OpenApiString(routeInfo.DefaultValue.ToString());
+                }
+
+                parameter.Required |= !routeInfo.IsOptional;
+            }
+        }
+    }
+
  </blockquete>
 
- -
+ - IApplicationBuilder : Criando uma abstração do "ApplicationBuilder" 
+
+ - Aplica o " services.AddSwaggerConfig();" na metodo "ConfigureServices" da "Startup".
+
+ - Aplica o "app.UseSwaggerConfig(provider);" no método "Configure" da "Startup".
+
+ - Codigo alternativo para deixar os endpoint antigo de cor cinza
 
  <blockquete>
+
+            var apiVersionMetadata = context.ApiDescription.ActionDescriptor.EndpointMetadata.OfType< ApiVersionAttribute>().FirstOrDefault(); 
+            operation.Deprecated = apiVersionMetadata?.Deprecated ?? false;
+
  </blockquete>
+
+ - Esconde o codigo: 
+
+ <blockquete> 
+
+            //operation.Deprecated = OpenApiOperation.DeprecatedDefault; 
+
+ </blockquete>
+
+# 
 
  -
 

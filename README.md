@@ -2425,7 +2425,7 @@ faz isso antes mesmo da validar a modelstate.
 
  - A primeira classe se chama "ConfigureSwaggerOptions"
 
- - IConfigureOptions<SwaggerGenOptions>: estende a classe, estende a configuração. 
+ - IConfigureOptions< SwaggerGenOptions>: estende a classe, estende a configuração. 
 
  - IApiVersionDescriptionProvider: interface do pacote de versionamento.
 
@@ -2441,7 +2441,7 @@ faz isso antes mesmo da validar a modelstate.
 
  <blockquete>
 
-        public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
+        public class ConfigureSwaggerOptions : IConfigureOptions< SwaggerGenOptions>
         {
                 readonly IApiVersionDescriptionProvider provider;
 
@@ -2619,28 +2619,155 @@ faz isso antes mesmo da validar a modelstate.
 
  </blockquete>
 
-# 
+# Autorização via JWT no Swagger
 
- -
+ - Criando uma configuração de autenticação pelo swagger no método "AddSwaggerConfig" da classe "SwaggerConfig".
+
+ - 
 
  <blockquete>
+
+    public static class SwaggerConfig
+        {
+            public static IServiceCollection AddSwaggerConfig(this IServiceCollection services)
+            {
+                services.AddSwaggerGen(c =>
+                {
+                    c.OperationFilter< SwaggerDefaultValues>();
+
+                    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                    {
+                        Description = "Insira o token JWT desta maneira: Bearer {seu token}",
+                        Name = "Authorization",
+                        Scheme = "Bearer",
+                        BearerFormat = "JWT",
+                        In = ParameterLocation.Header,
+                        Type = SecuritySchemeType.ApiKey
+                    });
+
+                    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                    {
+                        {
+                            new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference
+                                {
+                                    Type = ReferenceType.SecurityScheme,
+                                    Id = "Bearer"
+                                }
+                            },
+                            new string[] {}
+                        }
+                    });
+                });
+
+                return services;
+            }
+
+            public static IApplicationBuilder UseSwaggerConfig(this IApplicationBuilder app, IApiVersionDescriptionProvider provider)
+            {
+                //app.UseMiddleware< SwaggerAuthorizedMiddleware>();
+                app.UseSwagger();
+                app.UseSwaggerUI(
+                    options =>
+                    {
+                        foreach (var description in provider.ApiVersionDescriptions)
+                        {
+                            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
+                        }
+                    });
+                return app;
+            }
+        }
+
+ - 
+
  </blockquete>
 
+# Autorização via JWT no Swagger
 
-
- -
+ - Cria uma configuração para a autenticação no método "AddSwaggerGen" na classe "AddSwaggerConfig"
 
  <blockquete>
+
+                services.AddSwaggerGen(c =>
+                        {
+                            c.OperationFilter<SwaggerDefaultValues>();
+
+                            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                            {
+                                Description = "Insira o token JWT desta maneira: Bearer {seu token}",
+                                Name = "Authorization",
+                                Scheme = "Bearer",
+                                BearerFormat = "JWT",
+                                In = ParameterLocation.Header,
+                                Type = SecuritySchemeType.ApiKey
+                            });
+
+                            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                            {
+                                {
+                                    new OpenApiSecurityScheme
+                                    {
+                                        Reference = new OpenApiReference
+                                        {
+                                            Type = ReferenceType.SecurityScheme,
+                                            Id = "Bearer"
+                                        }
+                                    },
+                                    new string[] {}
+                                }
+                            });
+                        });
+
+                return services;
+
  </blockquete>
 
- -
+ - Com isso ja pode fazer o login no Swagger.
+
+# Restringindo o acesso ao Swagger
+
+ - Cria um Middleware chamado:  SwaggerAuthorizedMiddleware
 
  <blockquete>
+
+                public class SwaggerAuthorizedMiddleware
+                {
+                    private readonly RequestDelegate _ next;
+
+                    public SwaggerAuthorizedMiddleware(RequestDelegate next)
+                    {
+                        _ next = next;
+                    }
+
+                    public async Task Invoke(HttpContext context)
+                    {
+                        if (context.Request.Path.StartsWithSegments("/swagger")
+                            && !context.User.Identity.IsAuthenticated)
+                        {
+                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            return;
+                        }
+
+                        await _ next.Invoke(context);
+                    }
+                }
+
  </blockquete>
 
- -
+ - RequestDelegate: necessario para o "Middleware" funcionar, ele é um componente que passa em um tuneo de componentes.
+
+ - Ele sempre passa um request para o proximo Middleware. 
+
+ - Invoke: Verifica se o usuario está autenticado quando acessa a URL.(TRATAMENTO QUE VER SE ESTÁ AUTENTICADO).
+
+ - Bota a configuração no metodo "IApplicationBuilder", na classe "SwaggerConfig".
 
  <blockquete>
+
+                app.UseMiddleware< SwaggerAuthorizedMiddleware>();
+
  </blockquete>
 
  -

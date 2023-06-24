@@ -35,7 +35,6 @@ namespace DevIO.Api.V1.Controllers
             _mapper = mapper;
             _produtoService = produtoServico;
             _produtoRepository = produtoRepository;
-
         }
 
         

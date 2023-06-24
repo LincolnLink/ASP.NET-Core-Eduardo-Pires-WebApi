@@ -2726,7 +2726,7 @@ faz isso antes mesmo da validar a modelstate.
 
  - Com isso ja pode fazer o login no Swagger.
 
-# Restringindo o acesso ao Swagger
+# Restringindo o acesso ao Swagger(Essa validação de autenticação não está funcionando muito bem, refazer depois.)
 
  - Cria um Middleware chamado:  SwaggerAuthorizedMiddleware
 
@@ -2770,11 +2770,278 @@ faz isso antes mesmo da validar a modelstate.
 
  </blockquete>
 
+# Implementando o Logging
+
+ - Monitora erros da sua aplicação.
+
+ - O primeiro exemplo vai ser na classe de autenticação.
+
+ - Injeta o ILogger na controller de autenticação.
+
+ <blockquete>
+
+             private readonly ILogger _ logger;
+
+ </blockquete>
+
+ - No construtor da classe, deve por a classe como tipo.
+
+ <blockquete>
+
+            ILogger< AuthController> logger,
+
+ </blockquete>
+ 
+ - LogInformation é a classe que é usada para criar um logger, nesse exemplo é usado um que informa que o loggin foi feito.
+
+ - O logger não precisa resolver a injeção de dependencia, porque o ele já está dentro do Asp.net
+
+ <blockquete>
+
+            _ logger.LogInformation("Usuario " + loginUser.Email + " logado com sucesso");
+
+ </blockquete>
+
+ - No TesteControler que está na pasta V2, foi criado varios exemplos.
+
+ <blockquete>
+
+                _ logger.LogTrace("Log de Trace");
+                _ logger.LogDebug("Log de Debug");
+                _ logger.LogInformation("Log de Informação");
+                _ logger.LogWarning("Log de Aviso");
+                _ logger.LogError("Log de Erro");
+                _ logger.LogCritical("Log de Problema Critico");
+
+ </blockquete>
+
+ - Trace: log minimo menos impactante, desenvolvimento.
+ - Debug: deve ser usando durante o desenvolvimento.
+
+ - information: Informação.
+ - Warning: aviso.
+ - error: erro.
+ - critical: critico.
+
+ - É bom salvar o log no banco usando uma classe de provider.(???)
+
+ - Lembrar depois do KissLogger
+
+# elmah.io
+
+ - Ferramenta paga, para monitoramento.
+
+ - Tutorial de como instalar.
+
+ <blockquete>
+
+            https://docs.elmah.io
+
+
+            https://docs.elmah.io/logging-to-elmah-io-from-aspnet-core/
+
+ </blockquete>
+
+ - Cria um arquivo chamado LoggerConfig, classe que configura o logger.
+
+ - Aonde que bota as chaves, que o elmah identifica o usuario.
+
+ - Instala uma extenção do elmah, caso queira configurar o provider.
+
+ <blockquete>
+
+        install-package Elmah.io.extensions.logging
+
+        serivices.AddElmahIo(....)
+
+ </blockquete>
+
+ - AddElmahIo só registra os erros, o outro registr tudo.
+
+# Monitorando a saúde da API com HealthChecks
+
+ - Verifica a saude da aplicação. 
+
+ - Na startUp no método "ConfigureServices" adiciona o chamada " services.AddHealthChecks(); "
+ - Ainda na StartUp, no método "Configure", adiciona a chamada " app.UseHealthChecks("/hc"); "
+
+
+ - Instala um pacote chamado: Xabaril.
+ - Ele adiciona HealthChecks para outros pacotes instalados na API, sql, Azure, mongoD, etc...  
+
+ <blockquete>
+
+            ht tps://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks
+
+ </blockquete>
+
+ - Instala O pacote "HealthChecks", escolha a versão 5.1 caso seja o dotNET CORE 5. 
+
+ <blockquete>
+
+            Install-Package AspNetCore.HealthChecks.SqlServer
+
+ </blockquete>
+
+ - Configurando
+
+ <blockquete>
+
+            services.AddHealthChecks()
+                .AddSqlServer(Configuration.GetConnectionString(name:"DefaultConnection"), name: "BnacoSQL");
+
+ </blockquete>
+
+ - No metodo "AddHealthChecks()" é colocado a configuração, para identificar o HealthChecks que esta sendo monitorado.
+
+ - Instala mais um pacote que cria uma interface visual, escolha a versão 5.1 caso seja o dotNET CORE 5. 
+
+ <blockquete>
+
+        Install-Package AspNetCore.HealthChecks.ui
+
+ </blockquete>
+
+ - Configuração do método "UseApiConfig" da classe "AddApiConfig", configuração do "MapHealthChecksUI".
+
+ <blockquete>
+
+                endpoints.MapHealthChecks("/api/hc", new HealthCheckOptions()
+                {
+                    Predicate = _ => true,
+                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+                });
+                endpoints.MapHealthChecksUI(options =>
+                {
+                    options.UIPath = "/api/hc-ui";
+                    options.ResourcesPath = "/api/hc-ui-resources";
+
+                    options.UseRelativeApiPath = false;
+                    options.UseRelativeResourcesPath = false;
+                    options.UseRelativeWebhookPath = false;
+                });
+
+ </blockquete>
+
+ - Cria um arquivo com o nome de "SqlServerHealthCheck", configura uma validação que verifica se tem produtos no banco.
+
+ <blockquete>
+
+            public class SqlServerHealthCheck : IHealthCheck
+            {
+                readonly string _ connection;
+
+                public SqlServerHealthCheck(string connection)
+                {
+                    _ connection = connection;
+                }
+
+                public async Task< HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = new CancellationToken())
+                {
+                    try
+                    {
+                        using (var connection = new SqlConnection(_ connection))
+                        {
+                            await connection.OpenAsync(cancellationToken);
+
+                            var command = connection.CreateCommand();
+                            command.CommandText = "select count(id) from produtos";
+
+                            return Convert.ToInt32(await command.ExecuteScalarAsync(cancellationToken)) > 0 ? HealthCheckResult.Healthy() : HealthCheckResult.Unhealthy();
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        return HealthCheckResult.Unhealthy();
+                    }
+                }
+            }
+
+
+ </blockquete>
+
+ - No tutorial é ensinado a configural o HealthCheck junto com o "elmah", como o elmah é pago, não vou está testando essa opção.
+
+ - seguir depois outros tutoriais.
+
+ <blockquete>
+
+        https://renatogroffe.medium.com/net-5-health-checks-exemplos-de-implementação-em-projetos-asp-net-core-3488cc807608
+
+        https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks?view=aspnetcore-5.0
+        
+ </blockquete>
+
+# Realizando o deploy no IIS Local
+
+ - Instala o Hosting Bundle for Windowns.
+
+ - Mais detalhes https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/hosting-bundle?view=aspnetcore-7.0
+
+ - Instalando o IIS: https://pt.stackoverflow.com/questions/185603/como-ativar-o-iis-no-windows-10
+
+ - AspNet core 5: https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-aspnetcore-5.0.17-windows-x64-installer
+
+ - 
+
+ - 
+
+ <blockquete>
+ </blockquete>
+
  -
 
  <blockquete>
  </blockquete>
 
+ -
+
+ <blockquete>
+ </blockquete>
+
+ -
+
+ <blockquete>
+ </blockquete>
+
+ -
+
+ <blockquete>
+ </blockquete>
+
+ 
+ -
+
+ <blockquete>
+ </blockquete>
+ -
+
+ <blockquete>
+ </blockquete>
+ -
+
+ <blockquete>
+ </blockquete>
+ -
+
+ <blockquete>
+ </blockquete>
+ -
+
+ <blockquete>
+ </blockquete>
+ -
+
+ <blockquete>
+ </blockquete>
+ -
+
+ <blockquete>
+ </blockquete>
+ -
+
+ <blockquete>
+ </blockquete>
  -
 
  <blockquete>

@@ -1,4 +1,5 @@
 using DevIO.Api.Configuration;
+using DevIO.Api.Extensions;
 using DevIO.Data.Context;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -37,12 +38,25 @@ namespace DevIO.Api
                     
             services.AddSwaggerConfig();
 
+            //LIB paga não implementada.
+            //services.AddLoggingConfiguration();
+
+
+            //Codigo antigo
             //services.AddSwaggerGen(c =>
             //{
             //    c.SwaggerDoc(name: "v1", new OpenApiInfo { Title = "My API", Version = "v1" });
             //});
 
+            // lib paga, não implementada.
             //services.AddLoggingConfig(Configuration);
+
+            //Não tem
+            /*
+            services.AddHealthChecks()
+                .AddCheck("Produtos", new SqlServerHealthCheck(Configuration.GetConnectionString(name: "DefaultConnection")))
+                .AddSqlServer(Configuration.GetConnectionString(name: "DefaultConnection"), name: "BancoSQL");
+            services.AddHealthChecksUI();*/
 
             services.ResolveDependencies();
 
@@ -55,6 +69,9 @@ namespace DevIO.Api
 
             app.UseSwaggerConfig(provider);
 
+            //app.UseHealthChecks("/hc");
+
+            //Arquivo que tem uma lib paga.
             //app.UseLoggingConfiguration();
         }
     }

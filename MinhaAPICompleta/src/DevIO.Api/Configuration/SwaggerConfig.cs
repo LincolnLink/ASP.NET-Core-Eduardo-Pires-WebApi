@@ -52,7 +52,8 @@ namespace DevIO.Api.Configuration
 
         public static IApplicationBuilder UseSwaggerConfig(this IApplicationBuilder app, IApiVersionDescriptionProvider provider)
         {
-            app.UseMiddleware<SwaggerAuthorizedMiddleware>();
+            //Essa limitação não está funcionando, a ideia é de não exibir nada caso não esteja logado, mas não funciona.
+            //app.UseMiddleware<SwaggerAuthorizedMiddleware>();
             app.UseSwagger();
             app.UseSwaggerUI(
                 options =>
@@ -109,8 +110,8 @@ namespace DevIO.Api.Configuration
                 return;
             }
             //codigo alternativo para deixar os endpoint antigo de cor cinza
-            var apiVersionMetadata = context.ApiDescription.ActionDescriptor.EndpointMetadata.OfType<ApiVersionAttribute>().FirstOrDefault(); 
-            operation.Deprecated = apiVersionMetadata?.Deprecated ?? false;
+            //var apiVersionMetadata = context.ApiDescription.ActionDescriptor.EndpointMetadata.OfType<ApiVersionAttribute>().FirstOrDefault(); 
+            //operation.Deprecated = apiVersionMetadata?.Deprecated ?? false;
 
             foreach (var parameter in operation.Parameters)
             {
@@ -120,7 +121,7 @@ namespace DevIO.Api.Configuration
 
                 var routeInfo = description.RouteInfo;
 
-                //operation.Deprecated = OpenApiOperation.DeprecatedDefault;
+                operation.Deprecated = OpenApiOperation.DeprecatedDefault;
 
                 if (parameter.Description == null)
                 {

@@ -1,15 +1,11 @@
 ﻿using DevIO.Api.Extensions;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Net.Http.Headers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace DevIO.Api.Configuration
 {
@@ -93,18 +89,28 @@ namespace DevIO.Api.Configuration
 
             app.UseStaticFiles();
 
-            //Configuração basica do swagger.
+
+            //Configuração basica do swagger,(codigo antigo).
             //app.UseSwagger();
             //app.UseSwaggerUI(c =>
             //{
             //    c.SwaggerEndpoint(url: "/swagger/v1/swagger.json", name: "My API V1");
             //});
 
+            /*
+            app.UseHealthChecks("/api/hc", new HealthCheckOptions()
+            {
+                Predicate = _ => true,
+                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+            });
+            app.UseHealthChecksUI(options => { options.UIPath = "/api/hc-ui"; });*/
+
+            
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
                 /*
-                 endpoints.MapHealthChecks("/api/hc", new HealthCheckOptions()
+                endpoints.MapHealthChecks("/api/hc", new HealthCheckOptions()
                 {
                     Predicate = _ => true,
                     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
@@ -117,9 +123,10 @@ namespace DevIO.Api.Configuration
                     options.UseRelativeApiPath = false;
                     options.UseRelativeResourcesPath = false;
                     options.UseRelativeWebhookPath = false;
-                });
-                 */
+                });*/
+
             });
+
 
             return app;
         }

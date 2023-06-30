@@ -2976,37 +2976,160 @@ faz isso antes mesmo da validar a modelstate.
 
  - Instala o Hosting Bundle for Windowns.
 
- - Mais detalhes https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/hosting-bundle?view=aspnetcore-7.0
+ - AspNet core 5: https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-aspnetcore-5.0.17-windows-hosting-bundle-installer
+
+
+ - AspNet core 7(mais atualizada): https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/hosting-bundle?view=aspnetcore-7.0
+
+ - Se o pacote de hospedagem for instalado antes do IIS, a instalação do pacote deverá ser reparada. Execute o instalador do Hosting Bundle novamente após instalar o IIS.
+
+ - Depois que instala, deve para o serviço do IIS e iniciar novamente
+ 
+ <blockquete>
+
+    net stop was /y
+    net start w3svc
+    
+ </blockquete>
 
  - Instalando o IIS: https://pt.stackoverflow.com/questions/185603/como-ativar-o-iis-no-windows-10
 
- - AspNet core 5: https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-aspnetcore-5.0.17-windows-x64-installer
+ - Instalando e Configurando o IIS: https://www.youtube.com/watch?v=BihwoBW1NCM
+
+ - Instalando:
+    
+  - 1° Buscar por "Ativar ou desativar recursos do Windows".
+
+  - 2° Marca todas as opções de "Serviço de informações da internet".
+
+  - 3° Marca todas as opções de "Recursos de desenvolvimento de aplicativos". 
+
+  - 4° De ok e espere instalar.
+
+ - Configuração do IIS no Windows 10:
+
+  - 1° De um duplo click em "Mapeamento de Manipulador", "editar permissão de recurso", marca a opção de executar.
+
+  - 2° No menu principal clica em "Restringir ou habilitar extensões ISAPI e CGI especificas no servidor Web", "editar permissão de recurso", e marcar as 2 checkBox. pode alterar a porta padrão(80), clica em sites, default web site, editar associações, add, porta 82( exemplo).
+
+ <blockquete>
+
+    net stop was /y
+    net start w3svc
+
+ </blockquete>
+
+ - Configurando o site no IIS.
+
+ - Cria a pasta "curso.webapi".
+
+ - O caminho fisico é "C:\inetpub\wwwroot\curso.webapi".
+
+ - Entra no IIS, adiciona um site, na opção Sites, na aba esquerda,
+
+    - Nome: curso.webapi.
+
+    - Cria uma nova porta.
+
+ - Na coluna a direita clica em Binding(Associações), adiciona mais um binding na 
+
+    - porta : 443.
+
+    - SSL certificado: pode usar o do visual studio para testar.
+
+    - (PESQUISAR DEPOIS COMO GERAR ESSES CERTIFICADOS).
+
+ - No menu a esquerda, clica no "Pools de Aplicação", verifica se o site foi criado.
+
+# Publish (Inicia de modo administrador)
+
+ - Clica com o botão direito no projeto API, escolhe a opção Publish.
+
+ - IIS, FTP, etc
+
+ - Escolhe a opção Web Deploy(inplantação da WEB), ele conecta direto no IIS e publica.
+
+ - server: localhost ou outra porta
+
+ - SiteName: o nome que foi criado no IIS: curso.webapi.
+
+ - Destino URL: http://localhost
+
+ - Valida a conecção, para da o icnone verdinho.
+
+ - next: 
+
+ - configuração: Relesse.
+
+ - Target framework: netcoreaoo2.2
+
+ - deployment mode: 
+
+    - framework-dependent : depende da maquina com esse framwork.(a melhor opção)
+
+    - self-content : leva o framework junto.
+
+ - Target runtime: Portable (funciona em qualquer sistema operacional)
+
+ - File publish options: remove os arquivo, antes de por os arquivos novos.(deixa marcado)
+
+ - Database: bota a conectionsString, SQLEXPRESS de uma maquina local.
+
+ - Entity framework migrations: não marca nada.
+
+ - Dicas: recomendado fazer o deploy com o IIS desligado.
+
+ - não esqueça de por o s no https na url.
+
+# Rodando a API em SelfHosting
+
+ - Fazendo uma publicação rapida.
+
+ - Vai no caminho do projeto
+
+ - digita o comando: 
+
+ <blockquete>
+
+        dotnet run --project devio.api.csproj
+
+ </blockquete>
+
+ - Demora um pouco mas starta a aplicação, fica rodando no processo do windows, não é completo igual ao IIS.
+
+ - 2° Maneira:
+
+ - Publica usando o visual estudio mas escolhe a forma para publicar em uma pasta.
+
+ - Ele gera os arquivos.
+
+ - Dentro da pasta executa o comando.
+
+ <blockquete>
+
+        dotnet devio.api.dll
+
+ </blockquete>
 
  - 
 
- - 
+# Videos extras para ver depois
+
+ - configurando dominio e SSL no IIS. 
 
  <blockquete>
+
+        https://www.youtube.com/watch?v=b19wo8tHJc8&t=77s
+
+
  </blockquete>
 
- -
+ - Video falando sobre windows server.
 
  <blockquete>
- </blockquete>
 
- -
+            https://www.youtube.com/watch?v=auWeL4fxqkE&t=1248s
 
- <blockquete>
- </blockquete>
-
- -
-
- <blockquete>
- </blockquete>
-
- -
-
- <blockquete>
  </blockquete>
 
  

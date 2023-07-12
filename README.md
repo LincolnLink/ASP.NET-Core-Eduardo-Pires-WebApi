@@ -3132,8 +3132,38 @@ faz isso antes mesmo da validar a modelstate.
 
  </blockquete>
 
+# Realizando o deploy no Azure
+
+ - Vai no Publish, e cria um novo perfil, 
+ - Escolhe "App serve", "Azure App Service", advanced são as mesma configuração que a anterior.
+ - adiciona uma conta.
+
+
+ - Escolha um nome
+ - Subscription: Microsoft Azure Sponsors
+ - Resource Group: Demos.
+ - Hosting plan:
+    - Hosting plan: demosnplan
+    - Location: Brazil South:
+    - size: Free. 
+ - Application Insights: None.
+
+ - Cria um novo banco.
+  - nome: demos_db.
+
+ - Cria um SQLDataBase, um servidor de banco de dados.
+  - demosdeviolincoln-dbserver.
+  - Location: Brazil.
+  - curso@Api123.
+  - adm username: deviodemos.
+
  
- -
+ - app, plano de hospedagem, servidor de banco, e um banco.
+
+ - configura a conexao de banco, e rodar os migration do entityframework.
+
+ - 
+
 
  <blockquete>
  </blockquete>

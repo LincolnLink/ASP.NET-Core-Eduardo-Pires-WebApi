@@ -3185,18 +3185,50 @@ faz isso antes mesmo da validar a modelstate.
    -Sufixo de URL da API:   
   - Tipo de Implantação:  
 
+ - CONFIGURA O BANCO DE DADOS DEPOIS
+
+
+- Na classe startup no construtor remove o "IConfiguration" e coloca o "IHostingEnvironment".
 
  <blockquete>
+
+        public Startup(IHostingEnvironment hostingEnvironment)
+        {
+            var builder = new ConfigurationBuilder()
+                 .SetBasePath(hostingEnvironment.ContentRootPath)
+                 .AddJsonFile(path: "appsettings.json", optional: true, reloadOnChange: true)
+                 .AddJsonFile(path: $"appsettings.{hostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                 .AddEnvironmentVariables();
+
+            if(hostingEnvironment.IsDevelopment())
+            {
+                builder.AddUserSecrets<Startup>();
+            }
+
+            Configuration = builder.Build();
+        }
+
  </blockquete>
- -
+ 
+ - cria um appsettings para o azure. com a conection string do azure e sua endereço.
+
+ - seta para produção
 
  <blockquete>
+
+ $env:ASPNETCORE_ENVIRONMENT='Production'
+
  </blockquete>
- -
+
+ - Executa o comando para atualizar o banco.
 
  <blockquete>
+
+    update-database -Verbose -Context Meudbcontext
+
  </blockquete>
- -
+
+ - 
 
  <blockquete>
  </blockquete>

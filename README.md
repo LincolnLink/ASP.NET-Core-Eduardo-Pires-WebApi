@@ -3222,11 +3222,32 @@ faz isso antes mesmo da validar a modelstate.
 
  - Executa o comando para atualizar o banco.
 
+ - no azure bota o ip no firewall
+
  <blockquete>
 
     update-database -Verbose -Context Meudbcontext
 
  </blockquete>
+
+ - aposta para api
+
+ <blockquete>
+
+    update-database -Verbose -Context ApplicationDbContext
+
+ </blockquete>
+
+ - no painel de configuração do azure, vai em configuração> e adiciona um novo
+ application settings.
+
+  - Name: ASPNETCORE_ENVIRONMENT
+  - value: Production
+
+
+ -  A opção: Editor do Serviço de Aplicativo (Visualização), exibe os arquivos do projeto.
+
+ - você pode publicar só o arquivo que não subiu, apenas clicando nele.
 
  - 
 

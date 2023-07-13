@@ -87,8 +87,8 @@ namespace DevIO.Api.Configuration
             {
                 Title = "API - desenvolvedor.io",
                 Version = description.ApiVersion.ToString(),
-                Description = "Esta API faz parte do curso REST com ASP.NET Core WebAPI.",
-                Contact = new OpenApiContact() { Name = "Eduardo Pires", Email = "contato@desenvolvedor.io" },
+                Description = "Esta API faz parte do curso REST com ASP.NET Core WebAPI. Aluno Lincoln",
+                Contact = new OpenApiContact() { Name = "Lincoln Ferreira", Email = "link7-7@hotmail.com" },
                 License = new OpenApiLicense() { Name = "MIT", Url = new Uri("https://opensource.org/licenses/MIT") }
             };
 

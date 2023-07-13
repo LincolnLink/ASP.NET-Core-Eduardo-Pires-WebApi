@@ -3162,7 +3162,28 @@ faz isso antes mesmo da validar a modelstate.
 
  - configura a conexao de banco, e rodar os migration do entityframework.
 
- - 
+# Experiencia em 2023
+
+  - Destino: Azure.
+  - Destino especifico: azure aplicação windows.
+  - Serviço de aplicativo: cria uma nova instancia.
+   - Nome: DevIOApi.
+   - Nome da assinatura: Azure subscription 1.
+   - Grupo de recursos: Cria um novo chamado "Demos".
+   - Plano de hospedagem: Cria um novo que seja de graça(free).
+    - Plano de Hospegagem: DemosPlan.
+    - Local: Brazil South.
+    - Tamanho: Gratuito(free).
+  - Gerenciamento de API: 
+   - Nome da API: DevIOApi.
+   - Nome da assinatura: Azure sbscription 1.
+   - Grupo de recursos: Demos.
+   - Serviço de Gerenciamento de API: 
+    - nome:
+    - local:
+    - e-mail:
+   -Sufixo de URL da API:   
+  - Tipo de Implantação:  
 
 
  <blockquete>

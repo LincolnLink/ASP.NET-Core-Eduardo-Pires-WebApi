@@ -1185,6 +1185,18 @@ faz isso antes mesmo da validar a modelstate.
 
  - Precisa da implementação do Identity, para o atributo Authorize funcionar.
 
+ - Precisa de toso os pacotes instalados!
+
+<blockquete>
+
+    Install-Package Microsoft.EntityFrameworkCore
+    Install-Package Microsoft.EntityFrameworkCore.SqlServer
+    Install-Package Microsoft.EntityFrameworkCore.Tools
+    Install-Package Microsoft.AspNetCore.Identity.EntityFrameworkCore
+    Install-Package Microsoft.AspNetCore.Identity.UI
+    
+</blockquete>
+
 ### 1° passo 
 
  - Cria um classe "static" chamada "IdentityConfig.cs". para isolar a confgiração do Identity
@@ -1210,6 +1222,41 @@ faz isso antes mesmo da validar a modelstate.
         }
 
 </blockquete>
+
+ - cria uma classe de fabrica dbcontext para evitar erros.
+
+<blockquete>
+
+    using Microsoft.EntityFrameworkCore;
+        using Microsoft.EntityFrameworkCore.Design;
+        using Microsoft.Extensions.Configuration;
+        using System.IO;
+
+        namespace Pet.Api.Data
+        {
+            public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
+            {
+                public ApplicationDbContext CreateDbContext(string[] args)
+                {
+                    // Build configuration
+                    IConfigurationRoot configuration = new ConfigurationBuilder()
+                        .SetBasePath(Directory.GetCurrentDirectory())
+                        .AddJsonFile("appsettings.json")
+                        .Build();
+
+                    // Create DbContextOptionsBuilder
+                    var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+                    var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+                    optionsBuilder.UseSqlServer(connectionString);
+
+                    return new ApplicationDbContext(optionsBuilder.Options);
+                }
+            }
+        }
+
+</blockquete>
+
 
  - Copia e cola a configuração do "AddDbContext" que esta na startUp para a o método "AddIdentityConfig",
  que esta na classe "IdentityConfig", usando o contexto "ApplicationDbContext".
